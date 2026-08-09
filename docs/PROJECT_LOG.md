@@ -42,12 +42,14 @@ codes, a cutoff policy, a data contract, CI, and production monitoring.
 data/data/credit_risk_data.csv            23 MB, 143,727 applications
 notebooks/notebooks/model.ipynb           84-cell exploratory notebook
 notebooks/notebooks/utils.py              572-line analysis library
-modular_code/modular_code/               engine.py + ml_pipeline/ + lib/ (a copy of notebooks/)
+modular_code/modular_code/                engine.py + ml_pipeline/ + lib/ (a copy of notebooks/)
 Solution Methodology.pdf
 ```
 
 Not a git repository. No tests, no config, no logging, no CI, no inference path,
-no model documentation. The same 23 MB dataset stored three times.
+no model documentation. Every top-level folder was doubled (`data/data/`,
+`notebooks/notebooks/`, `modular_code/modular_code/`) and the same 23 MB dataset
+was stored three times.
 
 ---
 
@@ -313,6 +315,28 @@ Bureau data would do more than any further modelling on what is here.
 
 `.github/workflows/ci.yml`, `pyproject.toml` (ruff + pytest),
 `.pre-commit-config.yaml`, `requirements-dev.txt`, `.gitignore`
+
+### Final structure
+
+The delivered tree had every top-level folder doubled and the dataset stored
+three times. It was flattened to a conventional layout:
+
+```
+data/            the dataset, tracked exactly once
+ml_pipeline/     importable pipeline stages
+analysis/        independent validation experiments
+tests/           237 regression tests
+notebooks/       exploratory notebook and its analysis library
+docs/            review, model card, data register, project log
+archive/original/  the sources as delivered, kept as review evidence
+output/ output_v2/  generated artefacts
+```
+
+Entry points sit at the repository root. The working tree went from **141.5 MB
+to 41.5 MB** — the removals were two duplicate dataset copies (45.6 MB), a
+regenerable intermediate (31.3 MB), orphaned model binaries (12.6 MB), a
+duplicated notebook and library, caches, and two scored output files totalling
+21.5 MB that were keyed by `User_id` and should never have been sitting on disk.
 
 ---
 

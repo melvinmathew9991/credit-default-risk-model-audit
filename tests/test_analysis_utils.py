@@ -1,12 +1,13 @@
-"""Regression tests for the notebook analysis library (`lib/utils.py`).
-
-`lib/utils.py` and `notebooks/notebooks/utils.py` are maintained as byte-identical
-copies; `test_notebook_utils_copies_are_in_sync` enforces that, so testing one
-covers both.
+"""Regression tests for the notebook analysis library (`notebooks/utils.py`).
 
 Each test here pins a defect that was found during the model review.
+
+There used to be a second, byte-identical copy of this library under
+`modular_code/lib/`, kept in sync by a test. The restructure removed the
+duplicate, so there is now one copy and nothing to keep in sync.
 """
 
+import glob
 import os
 import sys
 
@@ -19,7 +20,7 @@ import pandas as pd
 import pytest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "lib"))
+sys.path.insert(0, os.path.join(ROOT, "notebooks"))
 
 import utils  # noqa: E402
 
@@ -158,21 +159,24 @@ def test_plot_helpers_close_their_figures(toy):
 
 # ------------------------------------------------------------------ #20
 def test_dead_imports_removed():
-    with open(os.path.join(ROOT, "lib", "utils.py"), encoding="utf-8") as fh:
+    with open(os.path.join(ROOT, "notebooks", "utils.py"), encoding="utf-8") as fh:
         src = fh.read()
     for dead in ["import bisect", "OneHotEncoder", "import random", "import datetime"]:
         assert dead not in src, f"unused import still present: {dead}"
 
 
 # ------------------------------------------------------------------ #28
-def test_notebook_utils_copies_are_in_sync():
-    """`lib/utils.py` and `notebooks/notebooks/utils.py` must not drift apart."""
-    a = os.path.join(ROOT, "lib", "utils.py")
-    b = os.path.abspath(os.path.join(ROOT, "..", "..", "notebooks", "notebooks", "utils.py"))
-    if not os.path.exists(b):
-        pytest.skip("notebooks copy not present")
-    with open(a, "rb") as fa, open(b, "rb") as fb:
-        assert fa.read() == fb.read(), (
-            "lib/utils.py and notebooks/notebooks/utils.py have diverged - "
-            "fix one and copy it over the other"
-        )
+def test_analysis_library_has_exactly_one_copy():
+    """The duplicate under modular_code/lib/ must not come back.
+
+    Two copies of this library existed and had to be edited in lockstep. The
+    restructure removed one; this fails if a second ever reappears.
+    """
+    copies = [
+        p
+        for p in glob.glob(os.path.join(ROOT, "**", "utils.py"), recursive=True)
+        if os.sep + "ml_pipeline" + os.sep not in p
+        and os.sep + "archive" + os.sep not in p
+        and os.sep + ".venv" + os.sep not in p
+    ]
+    assert len(copies) == 1, f"expected one analysis library, found: {copies}"

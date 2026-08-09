@@ -383,7 +383,7 @@ list suggests:
 | Dependency lock | ~ | Direct dependencies pinned; transitive ones not |
 | Configuration management | ✗ → ✓ | `ml_pipeline/config.py`; file / env / CLI precedence, validated |
 | Modularity | ✓ | Good stage separation |
-| Code duplication | ✗ → ~ | `lib/utils.py` still mirrors `notebooks/utils.py`, but a test now fails if they drift |
+| Code duplication | ✗ → ✓ | The duplicate library was deleted in the restructure; a test fails if a second copy reappears |
 | Error handling | ✗ → ✓ | Blanket `try/except` removed; failures propagate with context |
 | Logging | ✗ → ✓ | `ml_pipeline/logging_utils.py`; levelled, to stderr and a run log |
 | Automated tests | ✗ → ✓ | None existed; 59 regression tests added |
@@ -402,7 +402,7 @@ list suggests:
 
 ## 9. Changes made
 
-All original sources are preserved in `modular_code/_original_backup/`, and the
+All original sources are preserved in `archive/original/`, and the
 faithful reproduction run is archived in `output/baseline_faithful_run/`.
 
 **Defect repairs**
@@ -461,8 +461,8 @@ closed. Every "closed" row is covered by a test in `tests/`.
 | M11 | Roll-rate misread | Closed — corrected, and `dpd_roll_rate` now returns roll/recovery columns |
 | L1 | requirements.txt not installable | Closed |
 | L2 | `cutoff_score` off-by-one | Closed |
-| L3 | `lib/utils.py` duplication | Closed as *drift protection* — `test_notebook_utils_copies_are_in_sync` fails if the two copies diverge |
-| L4 | Three copies of the dataset | Closed — one canonical copy tracked, checksums in `DATA.md` |
+| L3 | `lib/utils.py` duplication | Closed — the duplicate was deleted in the restructure; `test_analysis_library_has_exactly_one_copy` fails if it returns |
+| L4 | Three copies of the dataset | Closed — the two duplicates were deleted; a pre-commit hook and a CI step fail if more than one is ever tracked |
 | L5 | No version control | Closed — git repository initialised |
 | L6 | No tests | Closed — 59 tests |
 | L7 | `total_payement` misspelling | **Open** — renaming would break the input schema contract |

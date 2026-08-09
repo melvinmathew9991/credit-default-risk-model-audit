@@ -21,7 +21,7 @@ ENV_PREFIX = "CRD_"
 @dataclass
 class Config:
     # ---- data ----------------------------------------------------------
-    data_path: str = "input/credit_risk_data.csv"
+    data_path: str = "data/credit_risk_data.csv"
     output_dir: str = "output"
     drop_columns: list = field(default_factory=lambda: ["gender"])
 

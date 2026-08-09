@@ -4,7 +4,7 @@ This is deliberately separate from the training pipeline. Its job is to try to
 break the result: to ask whether a 0.96 AUC default model is believable, and if
 not, to locate exactly where the number comes from.
 
-    python analysis/diagnostics.py        (run from modular_code/)
+    python analysis/diagnostics.py        (run from the repository root)
 
 Checks
 ------
@@ -31,7 +31,7 @@ warnings.filterwarnings("ignore")
 pd.set_option("display.width", 200)
 pd.set_option("display.max_columns", 50)
 
-DATA = "input/credit_risk_data.csv"
+DATA = "data/credit_risk_data.csv"
 ID_COLS = [
     "User_id",
     "emi_1_dpd",

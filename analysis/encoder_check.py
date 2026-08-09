@@ -29,7 +29,7 @@ ID_COLS = [
     "label",
 ]
 
-df = utils.process_data("input/credit_risk_data.csv", ["gender"])
+df = utils.process_data("data/credit_risk_data.csv", ["gender"])
 train, val, hold_out = utils.data_split(df)
 processing.create_label(train, dpd=60, months=3)
 processing.derived_features(train)

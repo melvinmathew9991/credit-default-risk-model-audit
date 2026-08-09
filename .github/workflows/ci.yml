@@ -37,17 +37,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install "$SETUPTOOLS_PIN"
-          pip install -r modular_code/modular_code/requirements.txt
+          pip install -r requirements.txt
           pip install -r requirements-dev.txt
 
       - name: Verify the dataset checksum
-        working-directory: modular_code/modular_code
         run: |
-          echo "2f816622a796f383cd48667607438ebbbfea4b07c919073e03497f3245b00688  input/credit_risk_data.csv" \
+          echo "2f816622a796f383cd48667607438ebbbfea4b07c919073e03497f3245b00688  data/credit_risk_data.csv" \
             | sha256sum --check
 
       - name: Run tests
-        working-directory: modular_code/modular_code
         run: python -m pytest tests -q
 
   smoke-train:
@@ -65,34 +63,29 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install "$SETUPTOOLS_PIN"
-          pip install -r modular_code/modular_code/requirements.txt
+          pip install -r requirements.txt
 
       - name: Data contract (report only)
-        working-directory: modular_code/modular_code
         # The shipped dataset knowingly breaches the contract (finding H1), so
         # this reports rather than gates. Flip to strict once the source export
         # is fixed and this becomes a real intake gate.
         run: python validate_data.py --no-strict
 
       - name: Smoke train - original pipeline
-        working-directory: modular_code/modular_code
         run: python engine.py --max-evals 2 --output-dir output_ci
 
       - name: Smoke train - governed v2 pipeline
-        working-directory: modular_code/modular_code
         run: python engine_v2.py --max-evals 2 --output-dir output_v2_ci
 
       - name: Score with v2
-        working-directory: modular_code/modular_code
         run: |
           python predict_v2.py \
-            --input input/credit_risk_data.csv \
+            --input data/credit_risk_data.csv \
             --artifacts output_v2_ci \
             --output /tmp/scores_ci.csv \
             --cutoff-score 555
 
       - name: Monitoring - build baseline and check a period
-        working-directory: modular_code/modular_code
         # Exercises the monitoring path end to end. `check` exits 1 on an ALERT,
         # so a genuine drift in the committed dataset would fail the build.
         run: |
@@ -107,3 +100,12 @@ jobs:
             exit 1
           fi
           echo "no scored output tracked"
+
+      - name: Confirm the dataset has exactly one copy
+        run: |
+          n=$(git ls-files | grep -c 'credit_risk_data\.csv$' || true)
+          if [ "$n" -ne 1 ]; then
+            echo "::error::expected exactly one tracked copy of the dataset, found $n"
+            exit 1
+          fi
+          echo "one tracked dataset copy"

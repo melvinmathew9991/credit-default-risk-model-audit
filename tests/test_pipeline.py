@@ -26,7 +26,7 @@ from ml_pipeline import evaluation as ev  # noqa: E402
 from ml_pipeline import processing, training, utils  # noqa: E402
 
 DATA = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "input", "credit_risk_data.csv"
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "credit_risk_data.csv"
 )
 
 

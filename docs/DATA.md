@@ -3,7 +3,7 @@
 ## Canonical copy
 
 ```
-modular_code/modular_code/input/credit_risk_data.csv
+data/credit_risk_data.csv
 ```
 
 | | |
@@ -17,29 +17,27 @@ modular_code/modular_code/input/credit_risk_data.csv
 Verify before any run:
 
 ```powershell
-Get-FileHash modular_code\modular_code\input\credit_risk_data.csv -Algorithm SHA256
+Get-FileHash data\credit_risk_data.csv -Algorithm SHA256
 ```
 
 ```bash
-sha256sum modular_code/modular_code/input/credit_risk_data.csv
+sha256sum data/credit_risk_data.csv
 ```
 
-## Duplicate copies
+## One copy, deliberately
 
-Two byte-identical duplicates exist so the notebooks can be opened and run from
-their own folders:
+The project as delivered stored this file three times — in `data/data/`,
+`notebooks/notebooks/` and `modular_code/modular_code/input/` — 69 MB for 23 MB
+of data, with no checksum and no way to tell which was authoritative.
 
-| Path | Purpose |
-|---|---|
-| `notebooks/notebooks/credit_risk_data.csv` | the exploratory notebook reads `credit_risk_data.csv` relative to itself |
-| `data/data/credit_risk_data.csv` | original delivery folder |
+All three were verified byte-identical (SHA-256 above) and the duplicates were
+removed. The notebook now reads `../data/credit_risk_data.csv`.
 
-All three were verified identical (same SHA-256, above). **Only the canonical
-copy is tracked in git** — the other two are listed in `.gitignore`, so the
-repository carries 23 MB of data rather than 69 MB.
+Two guards keep it that way: a pre-commit hook and a CI step both fail if more
+than one copy of `credit_risk_data.csv` is ever tracked.
 
-If you change the dataset, update all three copies and the checksum in this file,
-or delete the duplicates and repoint the notebooks at the canonical path.
+If you replace the dataset, update the checksum in this file — CI verifies it on
+every run and will fail on a mismatch.
 
 ## Reading the file
 
@@ -59,7 +57,7 @@ encoded feature values end up depending on a row's position in the file.
 
 ## Known data-quality issues
 
-These are documented in full in `modular_code/modular_code/MODEL_REVIEW.md`.
+These are documented in full in `docs/MODEL_REVIEW.md`.
 
 | Issue | Detail |
 |---|---|
