@@ -378,15 +378,15 @@ list suggests:
 
 | Area | Status | Notes |
 |---|---|---|
-| Version control | ✗ | Not a git repository |
-| Environment reproducibility | ~ | Pins existed but were not installable; no Python version declared; now fixed and verified |
+| Version control | ✗ → ✓ | git repository initialised with a documented initial commit |
+| Environment reproducibility | ~ → ✓ | Pins existed but were not installable; Python 3.10 declared, verified |
 | Dependency lock | ~ | Direct dependencies pinned; transitive ones not |
-| Configuration management | ✗ | Paths, seeds, label definition and trial count hardcoded in `engine.py` |
+| Configuration management | ✗ → ✓ | `ml_pipeline/config.py`; file / env / CLI precedence, validated |
 | Modularity | ✓ | Good stage separation |
-| Code duplication | ✗ | `lib/utils.py` duplicates `ml_pipeline` |
-| Error handling | ✗ | Blanket `try/except` + `print`, no re-raise |
-| Logging | ✗ | `print` only, no levels, no run log |
-| Automated tests | ✗ → ✓ | None existed; 17 regression tests added |
+| Code duplication | ✗ → ~ | `lib/utils.py` still mirrors `notebooks/utils.py`, but a test now fails if they drift |
+| Error handling | ✗ → ✓ | Blanket `try/except` removed; failures propagate with context |
+| Logging | ✗ → ✓ | `ml_pipeline/logging_utils.py`; levelled, to stderr and a run log |
+| Automated tests | ✗ → ✓ | None existed; 59 regression tests added |
 | CI/CD | ✗ | None |
 | Experiment tracking | ~ | `hyperopt_results.csv` only; no run metadata, seeds or environment captured |
 | Model artefact management | ✗ → ✓ | Only the booster was saved; encoder, feature list and manifest now persisted |
@@ -432,6 +432,48 @@ name.
 | `analysis/encoder_check.py` | target-encoder smoothing verification |
 | `tests/test_pipeline.py` | 17 regression tests |
 | `output/run_manifest.json` | run metadata: versions, seeds, split rows, default rates, chosen parameters |
+
+---
+
+## 9a. Remediation status
+
+Findings are kept as originally written; this table records what has since been
+closed. Every "closed" row is covered by a test in `tests/`.
+
+| # | Finding | Status |
+|---|---|---|
+| C1 | Target leakage from post-origination fields | **Open** — needs the data owner; documented in the notebook and `DATA.md` |
+| C2 | Target in the feature matrix | Closed — `config.validate()` and `train_lgb` refuse to run without `label` excluded |
+| C3 | Wrong hyperopt results path | Closed |
+| H1 | `"0"` / `"0.0"` placeholder artifact | **Open** — source data issue; documented |
+| H2 | Position-dependent CSV parsing | Closed — `low_memory=False`, enforced by `test_read_is_type_stable` |
+| H3 | Sign-inverted SHAP | Closed — class-1 values in `utils.shap_importance` and `evaluate.py` |
+| H4 | Protected attributes retained | **Open** — a policy decision, not a code change |
+| H5 | Encoder collapses categories | **Open** as a modelling choice; now logs a warning when a column encodes to a constant |
+| M1 | No inference path | Closed — `predict.py` + persisted artefacts |
+| M2, M3 | Validation reused; hold-out visible during tuning | **Open** — needs cross-validation; noted in the notebook |
+| M4 | Documented objective ≠ code | Closed |
+| M5 | Calibration unchecked | Closed as a *check* (`evaluate.py` reports Brier/ECE); calibration step itself still open |
+| M6, M7 | Thin validation window; users span splits | **Open** — data/design issues |
+| M8 | Errors swallowed | Closed — blanket `except` blocks removed, errors propagate |
+| M9 | Non-deterministic feature selection | Closed — seeded, warns if a seed is absent |
+| M10 | Degenerate derived features | Closed as a *check* — logs a warning when a derived feature is >95% zeros |
+| M11 | Roll-rate misread | Closed — corrected, and `dpd_roll_rate` now returns roll/recovery columns |
+| L1 | requirements.txt not installable | Closed |
+| L2 | `cutoff_score` off-by-one | Closed |
+| L3 | `lib/utils.py` duplication | Closed as *drift protection* — `test_notebook_utils_copies_are_in_sync` fails if the two copies diverge |
+| L4 | Three copies of the dataset | Closed — one canonical copy tracked, checksums in `DATA.md` |
+| L5 | No version control | Closed — git repository initialised |
+| L6 | No tests | Closed — 59 tests |
+| L7 | `total_payement` misspelling | **Open** — renaming would break the input schema contract |
+| L8 | Hardcoded `n_jobs=25` | Closed — `n_jobs=-1`, configurable |
+| L9 | No model card / monitoring plan | **Open** |
+| 13–22 | Analysis-helper defects | Closed — see `tests/test_analysis_utils.py` |
+| 30, 31 | No logging / config / CLI | Closed — `ml_pipeline/config.py`, `ml_pipeline/logging_utils.py`, `engine.py --help` |
+
+Everything still open is either a data-ownership question (C1, H1), a policy
+decision (H4, L7, L9), or modelling work that changes results and should be done
+deliberately (M2, M3, M5, M6, M7, H5).
 
 ---
 

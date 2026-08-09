@@ -60,11 +60,30 @@ MODEL_REVIEW.md           validation findings
 2. `python engine.py` — trains and writes to `output/`:
    `model.txt`, `target_encoder.pkl`, `feature_columns.json`,
    `processed_splits.pkl`, `run_manifest.json`, `hyperopt_results.csv`.
-   Override trial count and seed with the `MAX_EVALS` / `SEED` environment variables.
 3. `python evaluate.py` — writes `metrics.json`, decile tables, calibration
    tables, approval curve, feature importance and plots to `output/`.
 4. `python analysis/diagnostics.py` — runs the validation checks.
 5. `python predict.py --input <raw.csv> --output output/scores.csv` — batch scoring.
+6. `python -m pytest tests -q` — 59 regression tests.
+
+#### Configuration
+
+All settings live in `ml_pipeline/config.py`. Precedence, lowest to highest:
+
+```
+dataclass defaults  <  --config file  <  CRD_* environment  <  CLI flags
+```
+
+```bash
+python engine.py --help
+python engine.py --max-evals 5 --output-dir output_smoke   # quick smoke run
+python engine.py --config runs/experiment.json
+CRD_MAX_EVALS=5 python engine.py
+```
+
+The config validates itself on construction and refuses to run a configuration
+that would put the target into the feature matrix — the defect that made the
+original `engine.py` train on its own label.
 
 #### Pipeline
 
