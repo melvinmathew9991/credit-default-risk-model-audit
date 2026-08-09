@@ -508,3 +508,121 @@ deliberately (M2, M3, M5, M6, M7, H5).
 9. Write a model card: intended use, training window, feature definitions with
    observation timing, known limitations, monitoring plan.
 10. Put the project under version control and add CI running the test suite.
+
+---
+
+## 11. The remediated model (v2)
+
+Built by `engine_v2.py`, artefacts in `output_v2/`, documented in `MODEL_CARD.md`.
+
+### 11.1 What changed
+
+| Change | Finding closed |
+|---|---|
+| Features filtered through an enforced governance policy (`ml_pipeline/governance.py`) | C1, H4 |
+| `industry` / `work_experience` placeholder zeros collapsed to missing | H1 |
+| Single validation month replaced by expanding-window walk-forward folds | M2 |
+| Hold-out month scored exactly once, after all selection | M3 |
+| Repeat customers removed from later periods | M7 |
+| Isotonic calibration fitted out-of-sample | M5 |
+| WOE + logistic scorecard fitted as a challenger | — |
+
+### 11.2 Result on the untouched hold-out (202205, n = 26,607, 8.71% bad)
+
+| model | AUC | Gini | KS | PR-AUC |
+|---|---|---|---|---|
+| **Champion — LightGBM, calibrated** | **0.6457** | **0.2914** | **0.2141** | 0.1526 |
+| Challenger — WOE + logistic (4 features) | 0.6348 | 0.2696 | 0.1999 | 0.1430 |
+
+Walk-forward CV gave **0.6423 ± 0.0054** (min 0.6369). The hold-out landed at
+0.6457, inside that band — the model generalises, and for the first time in this
+project the validation estimate is honest.
+
+The champion beats the interpretable challenger by 0.022 Gini (≈8% relative).
+That is a real but modest margin, and it is the number that has to justify
+choosing 139 boosted trees over a six-line scorecard.
+
+### 11.3 Calibration
+
+The raw model was badly miscalibrated — it predicted a mean PD of 5.10% against
+an observed 8.71%, understating risk by 41%. This is the `pos_bagging_fraction`
+(0.303) / `neg_bagging_fraction` (0.894) asymmetry that M5 warned about, and it
+is far worse here than in the original leaky model.
+
+| | raw | calibrated |
+|---|---|---|
+| Mean predicted PD | 0.0510 | 0.0938 |
+| Observed rate | 0.0871 | 0.0871 |
+| Brier | 0.08017 | 0.07757 |
+| Expected calibration error | 0.03695 | **0.00792** |
+| AUC | 0.6462 | 0.6457 |
+
+Calibration cut the error 4.7-fold and cost 0.0005 AUC — isotonic regression
+maps score ranges onto flat steps, so tied scores lose a little ordering. That
+is immaterial, and the output can now be read as a probability of default.
+
+### 11.4 What each governance decision cost
+
+From `analysis/governance_cost.py` — one change per step, everything else fixed:
+
+| step | features | val Gini | change |
+|---|---|---|---|
+| 1. as originally built (leakage + protected) | 20 | 0.9222 | — |
+| 2. − post-origination fields (C1) | 15 | 0.3273 | **−0.5949** |
+| 3. − protected: `married`, `pincode` (H4) | 13 | 0.3276 | +0.0003 |
+| 4. − restricted alternative data | 10 | 0.3285 | +0.0010 |
+| 5. − placeholder artifact (H1) | 10 | 0.2929 | −0.0357 |
+| 6. − repeat customers from evaluation (M7) | 10 | 0.3051 | +0.0122 |
+
+**96% of everything lost was the leakage.** Two findings matter for the business
+case; the rest were free:
+
+- **Fair-lending compliance cost nothing.** Removing `married`, `pincode`,
+  `dependents`, `has_social_profile` and `is_verified` *improved* Gini by
+  0.0013. There was never a performance argument for keeping them.
+- **The placeholder artifact was the only other real cost** at 0.036 Gini — the
+  price of not scoring which spelling of a missing value a record happened to
+  carry. Defensible in front of a regulator; the alternative is not.
+
+About **a third of the original apparent power was real and permissible.**
+
+### 11.5 Where the remaining signal lives
+
+Information value on the training window:
+
+| feature | IV | strength |
+|---|---|---|
+| tier_of_employment | 0.1075 | medium |
+| work_experience | 0.0550 | weak |
+| total_income | 0.0504 | weak |
+| employment_type | 0.0259 | weak |
+| home_type | 0.0139 | useless |
+| role | 0.0112 | useless |
+| everything else (7 features) | < 0.002 | useless |
+
+Only four features carry anything, and none reaches "strong". The challenger
+uses exactly those four, and its weight-of-evidence bins are monotone and
+sensible — employer tier orders risk cleanly from A (best) to E (worst):
+
+| tier_of_employment | WOE |
+|---|---|
+| E | +0.9260 |
+| D | +0.5056 |
+| C | +0.0991 |
+| *(missing)* | −0.0743 |
+| B | −0.0985 |
+| A | −0.7878 |
+
+This is the honest shape of the problem: **this dataset supports a weak
+employment-quality model and little else.** A Gini of 0.29 is usable as one
+input to a credit policy — the top decile carries a 19.4% bad rate against an
+8.7% base, a lift of 2.2 — but it is not a standalone underwriting model, and
+the thin feature set is the reason. Adding bureau data would do far more than
+any further modelling on what is here.
+
+### 11.6 Still open after v2
+
+C1 and H1 are *contained* rather than resolved — the model no longer uses the
+affected fields, but the data issues remain and need the data owner. H4 is
+closed in code; the classifications still need compliance sign-off for the
+actual jurisdiction. M6 (five months of data) cannot be fixed without more data.

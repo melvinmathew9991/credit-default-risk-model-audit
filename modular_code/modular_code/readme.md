@@ -7,10 +7,28 @@ If the borrower shows an acceptable level of default risk, then their loan appli
 
 This project involves understanding financial terminologies attached to credit risk and building a classification model for default prediction with LightGBM. Hyperparameter Optimization is done using the Hyperopt library and SHAP is used for model explainability.
 
-> **Read `MODEL_REVIEW.md` before using any output of this pipeline.** The model
-> reaches ~0.96 AUC, but a validation review found that most of that comes from
-> features that are not available when a loan application is scored. The pipeline
-> is technically sound; the feature set is not fit for the stated purpose.
+> **Read `MODEL_REVIEW.md` before using any output of this pipeline.** The
+> original model reaches ~0.96 AUC, but a validation review found that most of
+> that comes from features unavailable when a loan application is scored.
+>
+> **`engine.py` reproduces the original model. `engine_v2.py` is the remediated
+> one** — application-time features only, under an enforced data governance
+> policy, walk-forward validation, calibrated output and a WOE scorecard
+> challenger. It scores **Gini 0.2914** on an untouched hold-out. See
+> `MODEL_CARD.md`. Neither model is approved for production use.
+
+#### Two pipelines
+
+| | `engine.py` | `engine_v2.py` |
+|---|---|---|
+| Purpose | reproduce the original result | the honest, governed model |
+| Features | 19, incl. post-origination and protected attributes | 13, governance-filtered |
+| Validation | single month | expanding-window walk-forward |
+| Hold-out | scored every trial | scored once, at the end |
+| Output | uncalibrated | isotonic-calibrated |
+| Challenger | none | WOE + logistic scorecard |
+| Hold-out Gini | 0.9272 (inflated by leakage) | **0.2914** |
+| Artefacts | `output/` | `output_v2/` |
 
 #### Environment
 
@@ -38,20 +56,32 @@ lib/                      exploratory notebook (reference only, not the pipeline
   utils.py
   hyperopt_results.csv
 ml_pipeline/              importable pipeline stages
+  config.py               configuration with validation
+  logging_utils.py        logging setup
+  governance.py           field classification and enforced feature policy
   utils.py                data loading and time-based splitting
   processing.py           labelling, feature engineering, encoding, selection
   training.py             hyperparameter space and LightGBM training
+  validation.py           walk-forward folds and customer dedup
+  calibration.py          isotonic / Platt calibration
+  woe.py                  weight of evidence, information value, scorecard
   evaluation.py           discrimination, calibration, stability, decile views
 analysis/                 independent validation, not part of training
   diagnostics.py          leakage / encoder / feature-validity checks
   encoder_check.py        target-encoder smoothing behaviour
-output/                   all generated artefacts
-engine.py                 training entry point
+  encoder_sweep.py        how much categorical signal is recoverable
+  governance_cost.py      what each governance decision cost, step by step
+tests/                    129 regression tests
+output/                   artefacts from engine.py
+output_v2/                artefacts from engine_v2.py
+engine.py                 training entry point (original model)
+engine_v2.py              training entry point (remediated model)
 evaluate.py               evaluation entry point
 predict.py                batch scoring entry point
 requirements.txt
 readme.md
 MODEL_REVIEW.md           validation findings
+MODEL_CARD.md             model card for v2
 ```
 
 #### Steps

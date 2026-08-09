@@ -39,6 +39,50 @@ def create_label(df, dpd, months):
     return df
 
 
+# Data quality
+#: Columns where a missing value was written as a literal zero, in two spellings.
+PLACEHOLDER_COLUMNS = ('industry', 'work_experience')
+PLACEHOLDER_VALUES = ('0', '0.0', 0, 0.0)
+
+
+def clean_placeholders(df, columns=PLACEHOLDER_COLUMNS, values=PLACEHOLDER_VALUES):
+    """Map placeholder zeros in `columns` to a real missing value.
+
+    `industry` and `work_experience` are 83.9% filled with a placeholder zero
+    recorded two different ways - "0" (87,848 rows, 9.75% default rate) and
+    "0.0" (32,766 rows, 4.76%). Both mean "not captured", but because they are
+    distinct strings the encoder treats them as two categories with very
+    different risk, so the model ends up scoring which spelling a record
+    happened to be written with. That is a fingerprint of how the file was
+    assembled, not an attribute of the borrower, and it cannot be justified to a
+    credit committee or a regulator.
+
+    Collapsing both to NaN keeps the legitimate signal ("this field was not
+    captured") and discards the provenance artifact.
+
+    Parameters
+    ----------
+    df : DataFrame
+    columns : tuple of str
+    values : tuple
+        Values to treat as missing.
+
+    Returns
+    -------
+    df : DataFrame
+    """
+    for c in columns:
+        if c not in df.columns:
+            continue
+        before = int(df[c].isna().sum())
+        df[c] = df[c].where(~df[c].isin(values), np.nan)
+        after = int(df[c].isna().sum())
+        logger.info("%s: %d placeholder value(s) mapped to missing (null rate "
+                    "%.1f%% -> %.1f%%)", c, after - before,
+                    100 * before / len(df), 100 * after / len(df))
+    return df
+
+
 # Features
 def derived_features(df):
     """Create Some Features

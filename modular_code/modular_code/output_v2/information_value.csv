@@ -1,0 +1,14 @@
+feature,iv,strength
+tier_of_employment,0.10752434101279268,medium
+work_experience,0.05503554651955371,weak
+total_income,0.05040944971748572,weak
+employment_type,0.025929164379636466,weak
+home_type,0.01394004953419389,useless
+role,0.011208656050021784,useless
+delinq_2yrs,0.001919851662697273,useless
+dependents,0.0018799318599487772,useless
+has_social_profile,0.00034687373412612294,useless
+is_verified,0.00018172912438133037,useless
+industry,0.0,useless
+number_of_loans,0.0,useless
+delinq_2yrs_ratio,0.0,useless

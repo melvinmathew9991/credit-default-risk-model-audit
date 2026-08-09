@@ -1,0 +1,15 @@
+[
+  "employment_type",
+  "tier_of_employment",
+  "industry",
+  "role",
+  "work_experience",
+  "total_income",
+  "dependents",
+  "home_type",
+  "has_social_profile",
+  "is_verified",
+  "delinq_2yrs",
+  "number_of_loans",
+  "delinq_2yrs_ratio"
+]

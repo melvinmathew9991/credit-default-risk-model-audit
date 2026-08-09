@@ -1,0 +1,225 @@
+{
+  "created_utc": "2026-08-09T12:00:03+00:00",
+  "model": "v2 - application-time features under governance policy",
+  "python": "3.10.11",
+  "versions": {
+    "pandas": "1.3.5",
+    "numpy": "1.22.4",
+    "lightgbm": "3.3.0"
+  },
+  "data_lineage": {
+    "path": "D:\\Build a Credit Default Risk Prediction Model with LightGBM\\modular_code\\modular_code\\input\\credit_risk_data.csv",
+    "sha256": "2f816622a796f383cd48667607438ebbbfea4b07c919073e03497f3245b00688",
+    "bytes": 23918876
+  },
+  "governance": {
+    "policy": {
+      "leakage": [
+        "interest_received",
+        "interest_received_ratio",
+        "received_principal",
+        "total_payement",
+        "total_payement_per_loan"
+      ],
+      "non_feature": [
+        "User_id",
+        "emi_1_dpd",
+        "emi_2_dpd",
+        "emi_3_dpd",
+        "emi_4_dpd",
+        "emi_5_dpd",
+        "emi_6_dpd",
+        "label",
+        "max_dpd",
+        "yearmo"
+      ],
+      "permitted": [
+        "delinq_2yrs",
+        "delinq_2yrs_ratio",
+        "employment_type",
+        "home_type",
+        "industry",
+        "number_of_loans",
+        "role",
+        "tier_of_employment",
+        "total_income",
+        "work_experience"
+      ],
+      "prohibited": [
+        "gender",
+        "married",
+        "pincode"
+      ],
+      "restricted": [
+        "dependents",
+        "has_social_profile",
+        "is_verified"
+      ]
+    },
+    "features_used": [
+      "employment_type",
+      "tier_of_employment",
+      "industry",
+      "role",
+      "work_experience",
+      "total_income",
+      "dependents",
+      "home_type",
+      "has_social_profile",
+      "is_verified",
+      "delinq_2yrs",
+      "number_of_loans",
+      "delinq_2yrs_ratio"
+    ],
+    "excluded": {
+      "gender": "prohibited",
+      "married": "prohibited",
+      "pincode": "prohibited",
+      "total_payement": "leakage",
+      "received_principal": "leakage",
+      "interest_received": "leakage",
+      "interest_received_ratio": "leakage",
+      "total_payement_per_loan": "leakage"
+    },
+    "restricted_included": true,
+    "placeholders_collapsed": true
+  },
+  "label": {
+    "dpd": 60,
+    "months": 3
+  },
+  "validation": {
+    "scheme": "expanding-window walk-forward over yearmo",
+    "tuning_months": [
+      202201,
+      202202,
+      202203,
+      202204
+    ],
+    "hold_out_month": 202205,
+    "hold_out_rows_after_dedup": 26607,
+    "cv_val_auc_mean": 0.6423129348871087,
+    "cv_val_auc_std": 0.0054383080510945455
+  },
+  "best_params": {
+    "num_leaves": 19,
+    "max_depth": 9,
+    "learning_rate": 0.008981674500038606,
+    "feature_fraction": 0.47485107435272134,
+    "max_bin": 70,
+    "min_data_in_leaf": 100,
+    "min_data_in_bin": 60,
+    "lambda_l1": 1.0803578174655326,
+    "lambda_l2": 3.266138460191481,
+    "bagging_freq": 20,
+    "pos_bagging_fraction": 0.3034677629824998,
+    "neg_bagging_fraction": 0.8935624813389127,
+    "random_seed": 2019,
+    "objective": "binary",
+    "metric": "auc",
+    "boosting": "gbdt",
+    "verbose": -1
+  },
+  "num_boost_round": 139,
+  "calibration": {
+    "method": "isotonic",
+    "before": {
+      "brier": 0.08017046273943754,
+      "auc": 0.6462173160686472,
+      "mean_predicted": 0.05102812718727121,
+      "observed_rate": 0.08711993084526629,
+      "calibration_ratio": 0.5857227696599332,
+      "expected_calibration_error": 0.036946118593938516,
+      "max_calibration_error": 0.12541637136916575
+    },
+    "after": {
+      "brier": 0.07756567409317446,
+      "auc": 0.6456930975440226,
+      "mean_predicted": 0.09378582101204537,
+      "observed_rate": 0.08711993084526629,
+      "calibration_ratio": 1.0765139515390385,
+      "expected_calibration_error": 0.007920727747979145,
+      "max_calibration_error": 0.016893551139613994
+    },
+    "auc_delta": -0.0005242185246245867,
+    "auc_materially_changed": false,
+    "brier_improvement": 0.0026047886462630815,
+    "ece_improvement": 0.02902539084595937
+  },
+  "hold_out_champion": {
+    "n": 26607,
+    "n_default": 2318,
+    "default_rate": 0.08711993084526629,
+    "roc_auc": 0.6456930975440226,
+    "gini": 0.2913861950880452,
+    "ks": 0.2140626083999791,
+    "ks_threshold": 0.12077870480731029,
+    "pr_auc_class1": 0.15257235174414122,
+    "avg_precision_class1": 0.14940953169217358,
+    "pr_auc_class0": 0.945457323273271
+  },
+  "hold_out_challenger": {
+    "n": 26607,
+    "n_default": 2318,
+    "default_rate": 0.08711993084526629,
+    "roc_auc": 0.6348166443826357,
+    "gini": 0.2696332887652715,
+    "ks": 0.19991967589300974,
+    "ks_threshold": 0.09684965001299858,
+    "pr_auc_class1": 0.1430349487991066,
+    "avg_precision_class1": 0.14213702312372717,
+    "pr_auc_class0": 0.9431905348631736
+  },
+  "information_value_top": [
+    {
+      "feature": "tier_of_employment",
+      "iv": 0.10752434101279268,
+      "strength": "medium"
+    },
+    {
+      "feature": "work_experience",
+      "iv": 0.05503554651955371,
+      "strength": "weak"
+    },
+    {
+      "feature": "total_income",
+      "iv": 0.05040944971748572,
+      "strength": "weak"
+    },
+    {
+      "feature": "employment_type",
+      "iv": 0.025929164379636466,
+      "strength": "weak"
+    },
+    {
+      "feature": "home_type",
+      "iv": 0.01394004953419389,
+      "strength": "useless"
+    },
+    {
+      "feature": "role",
+      "iv": 0.011208656050021784,
+      "strength": "useless"
+    },
+    {
+      "feature": "delinq_2yrs",
+      "iv": 0.001919851662697273,
+      "strength": "useless"
+    },
+    {
+      "feature": "dependents",
+      "iv": 0.0018799318599487772,
+      "strength": "useless"
+    },
+    {
+      "feature": "has_social_profile",
+      "iv": 0.00034687373412612294,
+      "strength": "useless"
+    },
+    {
+      "feature": "is_verified",
+      "iv": 0.00018172912438133037,
+      "strength": "useless"
+    }
+  ]
+}
