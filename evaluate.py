@@ -4,6 +4,7 @@ Run after engine.py. Loads the artefacts engine.py persisted (model, encoder,
 feature list, processed splits) and writes a full evaluation pack to output/.
 
     python evaluate.py
+    python evaluate.py --artifacts output_ci
 
 Outputs
 -------
@@ -15,6 +16,7 @@ output/feature_importance.csv     LightGBM split and gain importance
 output/plots/*.png                ROC, PR, score distribution, SHAP, class rate
 """
 
+import argparse
 import json
 import os
 import pickle
@@ -35,7 +37,13 @@ from sklearn.metrics import (
 
 from ml_pipeline import evaluation as ev
 
-OUT = "output"
+_ap = argparse.ArgumentParser(
+    description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+)
+_ap.add_argument("--artifacts", default="output", help="directory engine.py wrote its artefacts to")
+_args = _ap.parse_args()
+
+OUT = _args.artifacts
 PLOTS = os.path.join(OUT, "plots")
 os.makedirs(PLOTS, exist_ok=True)
 

@@ -45,7 +45,7 @@ alongside bureau data, affordability checks and policy rules.
 
 | | |
 |---|---|
-| Source | `input/credit_risk_data.csv` |
+| Source | `data/credit_risk_data.csv` |
 | SHA-256 | `2f816622a796f383cd48667607438ebbbfea4b07c919073e03497f3245b00688` |
 | Rows | 143,727 applications |
 | Period | 202201 – 202205 (five months) |

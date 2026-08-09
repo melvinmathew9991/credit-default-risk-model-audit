@@ -30,7 +30,7 @@ def parse_args(argv=None):
     p = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    p.add_argument("--input", default="input/credit_risk_data.csv")
+    p.add_argument("--input", default="data/credit_risk_data.csv")
     p.add_argument(
         "--no-strict", dest="strict", action="store_false", help="report issues without failing"
     )

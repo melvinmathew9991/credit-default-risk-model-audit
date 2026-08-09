@@ -35,13 +35,13 @@ repos:
         language: system
         pass_filenames: false
 
-      # lib/utils.py and notebooks/notebooks/utils.py are maintained as
-      # byte-identical copies; a test enforces it, but catch it earlier.
-      - id: utils-copies-in-sync
-        name: notebook utils copies must stay identical
+      # The dataset is 23 MB and belongs in the repository exactly once.
+      # It previously existed in three places.
+      - id: single-dataset-copy
+        name: the dataset must be tracked exactly once
         entry: >-
-          bash -c 'cmp -s "modular_code/modular_code/lib/utils.py"
-          "notebooks/notebooks/utils.py" || { echo "ERROR: the two utils.py copies have diverged";
-          exit 1; }'
+          bash -c 'n=$(git ls-files | grep -c "credit_risk_data\.csv$" || true);
+          if [ "$n" -gt 1 ]; then echo "ERROR: $n copies of the dataset are tracked";
+          exit 1; fi'
         language: system
         pass_filenames: false

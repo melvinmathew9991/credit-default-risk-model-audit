@@ -1,6 +1,6 @@
 """Scoring entry point for the governed v2 model.
 
-    python predict_v2.py --input input/credit_risk_data.csv
+    python predict_v2.py --input data/credit_risk_data.csv
     python predict_v2.py --input applications.csv --cutoff-score 560 --reasons
 
 Produces, per applicant: calibrated probability of default, score points, an

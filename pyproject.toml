@@ -12,9 +12,10 @@ line-length = 100
 target-version = "py310"
 extend-exclude = [
     ".venv",
-    "modular_code/modular_code/_original_backup",  # kept verbatim as evidence
-    "modular_code/modular_code/lib",               # mirror of notebooks/, see below
-    "notebooks",                                   # exploratory, not production code
+    "archive",     # the delivered originals, kept verbatim as review evidence
+    "notebooks",   # exploratory, not production code
+    "output",
+    "output_v2",
 ]
 
 [tool.ruff.lint]
@@ -50,7 +51,7 @@ known-first-party = ["ml_pipeline"]
 # pytest
 # ---------------------------------------------------------------------------
 [tool.pytest.ini_options]
-testpaths = ["modular_code/modular_code/tests"]
+testpaths = ["tests"]
 addopts = "-q --strict-markers"
 filterwarnings = [
     "ignore::DeprecationWarning",

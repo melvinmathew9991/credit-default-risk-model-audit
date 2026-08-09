@@ -3,10 +3,10 @@
 Implements the monitoring plan in MODEL_CARD.md section 8.
 
     # once, from the training window
-    python monitor.py baseline --input input/credit_risk_data.csv --up-to 202204
+    python monitor.py baseline --input data/credit_risk_data.csv --up-to 202204
 
     # every month thereafter
-    python monitor.py check --input input/credit_risk_data.csv --period 202205
+    python monitor.py check --input data/credit_risk_data.csv --period 202205
 
 Exit codes, so this can be scheduled and alert on its own:
 
@@ -51,14 +51,14 @@ def parse_args(argv=None):
     sub = p.add_subparsers(dest="command", required=True)
 
     b = sub.add_parser("baseline", help="snapshot the training population")
-    b.add_argument("--input", default="input/credit_risk_data.csv")
+    b.add_argument("--input", default="data/credit_risk_data.csv")
     b.add_argument("--artifacts", default="output_v2")
     b.add_argument(
         "--up-to", type=int, default=202204, help="last application month included in the baseline"
     )
 
     c = sub.add_parser("check", help="compare a period against the baseline")
-    c.add_argument("--input", default="input/credit_risk_data.csv")
+    c.add_argument("--input", default="data/credit_risk_data.csv")
     c.add_argument("--artifacts", default="output_v2")
     c.add_argument("--period", type=int, required=True, help="application month to check")
     c.add_argument(

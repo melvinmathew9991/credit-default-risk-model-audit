@@ -5,7 +5,7 @@ saved a booster but discarded the fitted target encoder and the feature list, so
 the artefact could not be reproduced against raw input. This script closes that
 gap using the artefacts engine.py now persists.
 
-    python predict.py --input input/credit_risk_data.csv --output output/scores.csv
+    python predict.py --input data/credit_risk_data.csv --output output/scores.csv
 
 The transformation applied here is exactly the training-time one, in the same
 order: drop gender -> derived features -> target encode -> select model features.
