@@ -156,7 +156,12 @@ class Config:
 
     @staticmethod
     def _read_file(path):
-        with open(path) as fh:
+        # utf-8-sig strips a byte-order mark if one is present and behaves like
+        # plain utf-8 otherwise. Windows editors and PowerShell's `Set-Content
+        # -Encoding utf8` write a BOM by default, and without this the BOM ends
+        # up inside the first key name - "﻿max_evals" - producing a
+        # baffling "unexpected keyword argument" error.
+        with open(path, encoding="utf-8-sig") as fh:
             text = fh.read()
         if path.endswith((".yaml", ".yml")):
             try:

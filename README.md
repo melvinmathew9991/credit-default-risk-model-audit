@@ -62,7 +62,7 @@ ml_pipeline/                  importable pipeline stages
   evaluation.py               discrimination, calibration, stability, deciles
   logging_utils.py            logging setup
 analysis/                     independent validation experiments, re-runnable
-tests/                        237 regression tests
+tests/                        243 regression tests
 notebooks/                    exploratory notebook and its analysis library
 docs/                         review, model card, data register, project log
 archive/original/             the sources as delivered, kept as review evidence
@@ -79,7 +79,7 @@ python engine.py                             # original model
 python evaluate.py                           # evaluation pack for engine.py
 python engine_v2.py                          # governed model
 python analysis/diagnostics.py               # the validation checks
-python -m pytest tests -q                    # 237 tests
+python -m pytest tests -q                    # 243 tests
 ```
 
 ### Scoring with the governed model

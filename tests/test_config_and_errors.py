@@ -91,6 +91,47 @@ def test_json_config_file(tmp_path):
     assert cfg.max_evals == 4 and cfg.seed == 99
 
 
+@pytest.mark.parametrize("suffix", [".yaml", ".yml"])
+def test_yaml_config_file(tmp_path, suffix):
+    """The docstring and README both advertise YAML, so it has to work.
+
+    PyYAML is a declared runtime dependency for exactly this reason - the
+    feature was documented while the import was unavailable.
+    """
+    p = tmp_path / f"run{suffix}"
+    p.write_text("max_evals: 4\nseed: 99\nlabel_dpd: 30\n")
+    cfg = Config.load(path=str(p))
+    assert cfg.max_evals == 4
+    assert cfg.seed == 99
+    assert cfg.label_dpd == 30
+
+
+def test_yaml_config_is_still_overridden_by_cli(tmp_path):
+    p = tmp_path / "run.yaml"
+    p.write_text("max_evals: 4\n")
+    assert Config.load(path=str(p), overrides={"max_evals": 11}).max_evals == 11
+
+
+def test_empty_yaml_config_falls_back_to_defaults(tmp_path):
+    p = tmp_path / "empty.yaml"
+    p.write_text("")
+    assert Config.load(path=str(p)).max_evals == Config().max_evals
+
+
+@pytest.mark.parametrize("suffix", [".yaml", ".json"])
+def test_config_file_with_a_byte_order_mark(tmp_path, suffix):
+    """Windows editors write a BOM by default.
+
+    Without utf-8-sig the BOM lands inside the first key name and surfaces as
+    `unexpected keyword argument '\\ufeffmax_evals'`, which points nowhere near
+    the actual cause.
+    """
+    p = tmp_path / f"bom{suffix}"
+    body = "max_evals: 4\n" if suffix == ".yaml" else json.dumps({"max_evals": 4})
+    p.write_bytes(b"\xef\xbb\xbf" + body.encode("utf-8"))
+    assert Config.load(path=str(p)).max_evals == 4
+
+
 def test_log_file_follows_output_dir():
     cfg = Config(output_dir="somewhere")
     assert cfg.resolved_log_file == os.path.join("somewhere", "engine_run.log")

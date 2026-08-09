@@ -1,0 +1,19 @@
+# Normalise text to LF in the repository and in the working tree, so the same
+# bytes exist on every platform.
+* text=auto eol=lf
+
+# Data and binary artefacts must never be line-ending converted.
+#
+# This is not hypothetical: with core.autocrlf=true, a branch checkout rewrote
+# data/credit_risk_data.csv from LF to CRLF, adding one byte per row - 143,728
+# bytes - and invalidating the SHA-256 registered in docs/DATA.md. Git stored
+# the normalised LF blob, so CI on Linux would have passed while the local file
+# no longer matched its own checksum.
+*.csv  -text
+*.pkl  -text
+*.pdf  -text
+*.png  -text
+*.jpg  -text
+
+# Notebooks are JSON; keep them byte-stable so diffs stay meaningful.
+*.ipynb -text

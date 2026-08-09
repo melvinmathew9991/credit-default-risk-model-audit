@@ -3,7 +3,7 @@
 A complete record of the work: what was found, what was built, what was decided,
 and what is still open.
 
-**Date:** 2026-08-09 · **Commits:** 6 · **Tests:** 237 · **Status:** v2 model is decision-capable, not approved
+**Date:** 2026-08-09 · **Commits:** 8 · **Tests:** 243 · **Status:** v2 model is decision-capable, not approved
 
 ---
 
@@ -32,7 +32,7 @@ codes, a cutoff policy, a data contract, CI, and production monitoring.
 | Can it be served? | no | yes |
 | Can a decline be explained? | no | yes |
 | Can it be monitored? | no | yes |
-| Tests | 0 | 237 |
+| Tests | 0 | 243 |
 
 ---
 
