@@ -1,0 +1,10 @@
+severity,column,check,message
+WARNING,User_id,unique,"9,975 duplicate value(s)"
+WARNING,industry,degenerate,a single value covers 61.12% of rows - the column carries almost no information
+WARNING,industry,placeholder,"83.92% of rows hold a missing-value placeholder {'0': '87,848', '0.0': '32,766'} - these should be real nulls"
+ERROR,industry,placeholder_spelling,"the same placeholder is written 2 ways ['0', '0.0'] - distinct spellings become distinct categories, so the model can score data provenance rather than the borrower"
+WARNING,work_experience,degenerate,a single value covers 61.12% of rows - the column carries almost no information
+WARNING,work_experience,placeholder,"83.92% of rows hold a missing-value placeholder {'0': '87,848', '0.0': '32,766'} - these should be real nulls"
+ERROR,work_experience,placeholder_spelling,"the same placeholder is written 2 ways ['0', '0.0'] - distinct spellings become distinct categories, so the model can score data provenance rather than the borrower"
+WARNING,home_type,placeholder,0.03% of rows hold a missing-value placeholder {'none': '42'} - these should be real nulls
+WARNING,number_of_loans,degenerate,a single value covers 99.59% of rows - the column carries almost no information

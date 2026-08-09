@@ -17,8 +17,14 @@ Metric choices follow standard credit-risk scorecard practice:
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import (roc_auc_score, roc_curve, precision_recall_curve,
-                             auc, average_precision_score, brier_score_loss)
+from sklearn.metrics import (
+    auc,
+    average_precision_score,
+    brier_score_loss,
+    precision_recall_curve,
+    roc_auc_score,
+    roc_curve,
+)
 
 
 # --------------------------------------------------------------------------
@@ -86,8 +92,7 @@ def calibration_metrics(y_true, y_score, n_bins=10):
 
     bins = pd.qcut(y_score, n_bins, labels=False, duplicates="drop")
     tab = pd.DataFrame({"y": y_true, "p": y_score, "b": bins})
-    grp = tab.groupby("b").agg(n=("y", "size"), actual=("y", "mean"),
-                               predicted=("p", "mean"))
+    grp = tab.groupby("b").agg(n=("y", "size"), actual=("y", "mean"), predicted=("p", "mean"))
     gap = (grp["actual"] - grp["predicted"]).abs()
 
     return {
@@ -138,14 +143,21 @@ def decile_table(y_true, y_score, n_bins=10):
     y_score = np.asarray(y_score)
 
     df = pd.DataFrame({"y": y_true, "p": y_score})
-    df["decile"] = pd.qcut(df["p"].rank(method="first", ascending=False),
-                           n_bins, labels=range(1, n_bins + 1)).astype(int)
+    df["decile"] = pd.qcut(
+        df["p"].rank(method="first", ascending=False), n_bins, labels=range(1, n_bins + 1)
+    ).astype(int)
 
-    out = (df.groupby("decile")
-             .agg(n=("y", "size"), bads=("y", "sum"),
-                  min_score=("p", "min"), max_score=("p", "max"),
-                  avg_score=("p", "mean"))
-             .reset_index())
+    out = (
+        df.groupby("decile")
+        .agg(
+            n=("y", "size"),
+            bads=("y", "sum"),
+            min_score=("p", "min"),
+            max_score=("p", "max"),
+            avg_score=("p", "mean"),
+        )
+        .reset_index()
+    )
     out["goods"] = out["n"] - out["bads"]
     out["bad_rate"] = out["bads"] / out["n"]
     out["cum_bad_capture"] = out["bads"].cumsum() / out["bads"].sum()
@@ -163,18 +175,20 @@ def approval_curve(y_true, y_score, steps=20):
     y_true = np.asarray(y_true)
     y_score = np.asarray(y_score)
 
-    order = np.argsort(y_score)          # safest first
+    order = np.argsort(y_score)  # safest first
     y_sorted = y_true[order]
     s_sorted = y_score[order]
 
     rows = []
     for rate in np.linspace(1.0 / steps, 1.0, steps):
         k = max(1, int(round(rate * len(y_sorted))))
-        rows.append({
-            "approval_rate": rate,
-            "n_approved": k,
-            "cutoff_score": float(s_sorted[k - 1]),
-            "bad_rate_of_approved": float(y_sorted[:k].mean()),
-            "bads_avoided": int(y_sorted.sum() - y_sorted[:k].sum()),
-        })
+        rows.append(
+            {
+                "approval_rate": rate,
+                "n_approved": k,
+                "cutoff_score": float(s_sorted[k - 1]),
+                "bad_rate_of_approved": float(y_sorted[:k].mean()),
+                "bads_avoided": int(y_sorted.sum() - y_sorted[:k].sum()),
+            }
+        )
     return pd.DataFrame(rows)

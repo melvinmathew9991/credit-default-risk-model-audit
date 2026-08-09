@@ -32,8 +32,8 @@ def setup_logging(level="INFO", log_file=None):
         root.removeHandler(h)
 
     fmt = logging.Formatter(
-        "%(asctime)s %(levelname)-7s %(name)-22s %(message)s",
-        datefmt="%H:%M:%S")
+        "%(asctime)s %(levelname)-7s %(name)-22s %(message)s", datefmt="%H:%M:%S"
+    )
 
     stream = logging.StreamHandler(sys.stderr)
     stream.setFormatter(fmt)

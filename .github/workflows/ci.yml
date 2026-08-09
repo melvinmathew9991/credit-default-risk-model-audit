@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  # hyperopt 0.2.7 imports pkg_resources, removed from setuptools 81
+  SETUPTOOLS_PIN: "setuptools<81"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - run: pip install ruff==0.6.9
+      - name: ruff check
+        run: ruff check .
+      - name: ruff format --check
+        run: ruff format --check .
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "$SETUPTOOLS_PIN"
+          pip install -r modular_code/modular_code/requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Verify the dataset checksum
+        working-directory: modular_code/modular_code
+        run: |
+          echo "2f816622a796f383cd48667607438ebbbfea4b07c919073e03497f3245b00688  input/credit_risk_data.csv" \
+            | sha256sum --check
+
+      - name: Run tests
+        working-directory: modular_code/modular_code
+        run: python -m pytest tests -q
+
+  smoke-train:
+    # A green test suite does not prove the pipeline still runs end to end.
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "$SETUPTOOLS_PIN"
+          pip install -r modular_code/modular_code/requirements.txt
+
+      - name: Data contract (report only)
+        working-directory: modular_code/modular_code
+        # The shipped dataset knowingly breaches the contract (finding H1), so
+        # this reports rather than gates. Flip to strict once the source export
+        # is fixed and this becomes a real intake gate.
+        run: python validate_data.py --no-strict
+
+      - name: Smoke train - original pipeline
+        working-directory: modular_code/modular_code
+        run: python engine.py --max-evals 2 --output-dir output_ci
+
+      - name: Smoke train - governed v2 pipeline
+        working-directory: modular_code/modular_code
+        run: python engine_v2.py --max-evals 2 --output-dir output_v2_ci
+
+      - name: Score with v2
+        working-directory: modular_code/modular_code
+        run: |
+          python predict_v2.py \
+            --input input/credit_risk_data.csv \
+            --artifacts output_v2_ci \
+            --output /tmp/scores_ci.csv \
+            --cutoff-score 555
+
+      - name: Confirm no personal data is about to be committed
+        run: |
+          if git ls-files | grep -Ei '(^|/)(scores|.*_scores)[^/]*\.csv$'; then
+            echo "::error::a scored output file is tracked in git - it is keyed by User_id and carries personal data"
+            exit 1
+          fi
+          echo "no scored output tracked"

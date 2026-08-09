@@ -87,11 +87,11 @@ class WOEEncoder:
             s = X[col]
             numeric = pd.api.types.is_numeric_dtype(s)
             self.kinds_[col] = "numeric" if numeric else "categorical"
-            binned = (self._bin_numeric(s, fit=True, col=col) if numeric
-                      else self._bin_categorical(s))
+            binned = (
+                self._bin_numeric(s, fit=True, col=col) if numeric else self._bin_categorical(s)
+            )
 
-            tab = pd.DataFrame({"bin": binned, "y": y}).groupby("bin")["y"].agg(
-                ["count", "sum"])
+            tab = pd.DataFrame({"bin": binned, "y": y}).groupby("bin")["y"].agg(["count", "sum"])
             tab = self._merge_small(tab, len(y))
 
             events = tab["sum"].astype(float)
@@ -105,8 +105,12 @@ class WOEEncoder:
             self.maps_[col] = woe.to_dict()
             self.iv_[col] = float(((dist_e - dist_n) * woe).sum())
 
-        logger.info("WOE fitted on %d features; IV range %.4f - %.4f",
-                    len(self.maps_), min(self.iv_.values()), max(self.iv_.values()))
+        logger.info(
+            "WOE fitted on %d features; IV range %.4f - %.4f",
+            len(self.maps_),
+            min(self.iv_.values()),
+            max(self.iv_.values()),
+        )
         return self
 
     def _merge_small(self, tab, n_rows):
@@ -133,8 +137,11 @@ class WOEEncoder:
         out = pd.DataFrame(index=X.index)
         for col, mapping in self.maps_.items():
             s = X[col]
-            binned = (self._bin_numeric(s, fit=False, col=col)
-                      if self.kinds_[col] == "numeric" else self._bin_categorical(s))
+            binned = (
+                self._bin_numeric(s, fit=False, col=col)
+                if self.kinds_[col] == "numeric"
+                else self._bin_categorical(s)
+            )
             out[col] = binned.map(mapping).astype(float).fillna(0.0)
         return out
 
@@ -144,11 +151,16 @@ class WOEEncoder:
     # ------------------------------------------------------------------
     def iv_table(self):
         """Information value per feature, strongest first."""
-        t = (pd.DataFrame({"feature": list(self.iv_), "iv": list(self.iv_.values())})
-             .sort_values("iv", ascending=False).reset_index(drop=True))
+        t = (
+            pd.DataFrame({"feature": list(self.iv_), "iv": list(self.iv_.values())})
+            .sort_values("iv", ascending=False)
+            .reset_index(drop=True)
+        )
         t["strength"] = pd.cut(
-            t["iv"], [-np.inf, 0.02, 0.1, 0.3, 0.5, np.inf],
-            labels=["useless", "weak", "medium", "strong", "suspicious"])
+            t["iv"],
+            [-np.inf, 0.02, 0.1, 0.3, 0.5, np.inf],
+            labels=["useless", "weak", "medium", "strong", "suspicious"],
+        )
         return t
 
     def select(self, min_iv=0.02):
@@ -157,9 +169,11 @@ class WOEEncoder:
 
     def bin_table(self, col):
         """The fitted bins and WOE values for one feature - the auditable view."""
-        return (pd.DataFrame({"bin": list(self.maps_[col]),
-                              "woe": list(self.maps_[col].values())})
-                .sort_values("woe", ascending=False).reset_index(drop=True))
+        return (
+            pd.DataFrame({"bin": list(self.maps_[col]), "woe": list(self.maps_[col].values())})
+            .sort_values("woe", ascending=False)
+            .reset_index(drop=True)
+        )
 
 
 def fit_logistic_scorecard(woe_train, y_train, C=1.0):
@@ -203,8 +217,7 @@ def coefficient_table(model, feature_names, woe_matrix=None):
     -------
     DataFrame
     """
-    t = pd.DataFrame({"feature": list(feature_names),
-                      "coefficient": model.coef_[0]})
+    t = pd.DataFrame({"feature": list(feature_names), "coefficient": model.coef_[0]})
 
     if woe_matrix is not None:
         sd = woe_matrix[list(feature_names)].std(ddof=0)
@@ -212,6 +225,9 @@ def coefficient_table(model, feature_names, woe_matrix=None):
         t["contribution"] = t["coefficient"].abs() * t["woe_std"].to_numpy()
         return t.sort_values("contribution", ascending=False).reset_index(drop=True)
 
-    return (t.assign(abs_coef=lambda d: d.coefficient.abs())
-            .sort_values("abs_coef", ascending=False)
-            .drop(columns="abs_coef").reset_index(drop=True))
+    return (
+        t.assign(abs_coef=lambda d: d.coefficient.abs())
+        .sort_values("abs_coef", ascending=False)
+        .drop(columns="abs_coef")
+        .reset_index(drop=True)
+    )

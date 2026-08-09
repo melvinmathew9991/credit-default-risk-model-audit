@@ -53,17 +53,22 @@ def expanding_window_folds(df, months=None, min_train_months=1, time_col="yearmo
     months = sorted(df[time_col].unique()) if months is None else sorted(months)
     if len(months) <= min_train_months:
         raise ValueError(
-            f"need more than {min_train_months} month(s) to build a fold, "
-            f"got {months}")
+            f"need more than {min_train_months} month(s) to build a fold, " f"got {months}"
+        )
 
     for i in range(min_train_months, len(months)):
         train_months = months[:i]
         val_month = months[i]
         train_idx = df.index[df[time_col].isin(train_months)]
         val_idx = df.index[df[time_col] == val_month]
-        logger.info("fold %d: train %s (%d rows) -> validate %s (%d rows)",
-                    i - min_train_months + 1, train_months, len(train_idx),
-                    val_month, len(val_idx))
+        logger.info(
+            "fold %d: train %s (%d rows) -> validate %s (%d rows)",
+            i - min_train_months + 1,
+            train_months,
+            len(train_idx),
+            val_month,
+            len(val_idx),
+        )
         yield i - min_train_months + 1, train_months, val_month, train_idx, val_idx
 
 
@@ -92,9 +97,14 @@ def drop_leaked_users(train, later, id_col="User_id", name="later"):
     mask = ~later[id_col].isin(seen)
     removed = int((~mask).sum())
     if removed:
-        logger.info("dedup: removed %d of %d rows from %s (%.2f%%) whose customer "
-                    "already appears in training",
-                    removed, len(later), name, 100 * removed / len(later))
+        logger.info(
+            "dedup: removed %d of %d rows from %s (%.2f%%) whose customer "
+            "already appears in training",
+            removed,
+            len(later),
+            name,
+            100 * removed / len(later),
+        )
     return later.loc[mask].reset_index(drop=True)
 
 
@@ -110,5 +120,10 @@ def summarise_folds(scores):
     Dict
     """
     a = np.asarray(scores, dtype=float)
-    return {"mean": float(a.mean()), "std": float(a.std(ddof=0)),
-            "min": float(a.min()), "max": float(a.max()), "n_folds": int(a.size)}
+    return {
+        "mean": float(a.mean()),
+        "std": float(a.std(ddof=0)),
+        "min": float(a.min()),
+        "max": float(a.max()),
+        "n_folds": int(a.size),
+    }

@@ -18,7 +18,7 @@ import pickle
 
 import pandas as pd
 
-from ml_pipeline import processing, utils
+from ml_pipeline import processing
 
 OUT = "output"
 
@@ -71,8 +71,10 @@ def main():
     args = ap.parse_args()
 
     model, encoder, features, manifest = load_artifacts(args.artifacts)
-    print(f"Loaded model trained {manifest['created_utc']} "
-          f"({len(features)} features, {manifest['best_iteration']} trees)")
+    print(
+        f"Loaded model trained {manifest['created_utc']} "
+        f"({len(features)} features, {manifest['best_iteration']} trees)"
+    )
 
     df = pd.read_csv(args.input, low_memory=False)
     scores = score(df, model, encoder, features)

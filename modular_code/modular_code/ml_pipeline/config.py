@@ -11,10 +11,9 @@ Precedence, lowest to highest:
 Environment variables are prefixed `CRD_`, e.g. `CRD_MAX_EVALS=5`.
 """
 
-from dataclasses import dataclass, field, asdict, fields
 import json
 import os
-
+from dataclasses import asdict, dataclass, field, fields
 
 ENV_PREFIX = "CRD_"
 
@@ -28,9 +27,20 @@ class Config:
 
     # Columns that must never enter the feature matrix. 'label' is the target;
     # the emi_*_dpd and max_dpd columns are what the label is derived from.
-    id_cols: list = field(default_factory=lambda: [
-        "User_id", "emi_1_dpd", "emi_2_dpd", "emi_3_dpd", "emi_4_dpd",
-        "emi_5_dpd", "emi_6_dpd", "max_dpd", "yearmo", "label"])
+    id_cols: list = field(
+        default_factory=lambda: [
+            "User_id",
+            "emi_1_dpd",
+            "emi_2_dpd",
+            "emi_3_dpd",
+            "emi_4_dpd",
+            "emi_5_dpd",
+            "emi_6_dpd",
+            "max_dpd",
+            "yearmo",
+            "label",
+        ]
+    )
 
     # ---- label ---------------------------------------------------------
     label_dpd: int = 60
@@ -48,14 +58,28 @@ class Config:
     early_stopping_rounds: int = 50
 
     # ---- component parameters ------------------------------------------
-    encoder_params: dict = field(default_factory=lambda: {
-        "verbose": 0, "cols": None, "drop_invariant": False, "return_df": True,
-        "handle_missing": "value", "handle_unknown": "value",
-        "min_samples_leaf": 5000, "smoothing": 1})
+    encoder_params: dict = field(
+        default_factory=lambda: {
+            "verbose": 0,
+            "cols": None,
+            "drop_invariant": False,
+            "return_df": True,
+            "handle_missing": "value",
+            "handle_unknown": "value",
+            "min_samples_leaf": 5000,
+            "smoothing": 1,
+        }
+    )
 
-    rf_params: dict = field(default_factory=lambda: {
-        "n_estimators": 250, "criterion": "entropy", "verbose": False,
-        "n_jobs": -1, "random_state": 2019})
+    rf_params: dict = field(
+        default_factory=lambda: {
+            "n_estimators": 250,
+            "criterion": "entropy",
+            "verbose": False,
+            "n_jobs": -1,
+            "random_state": 2019,
+        }
+    )
 
     dt_params: dict = field(default_factory=lambda: {"random_state": 2019})
 
@@ -80,7 +104,8 @@ class Config:
         if "label" not in self.id_cols:
             raise ValueError(
                 "'label' must be listed in id_cols - otherwise the target ends "
-                "up in the feature matrix and every metric becomes meaningless")
+                "up in the feature matrix and every metric becomes meaningless"
+            )
         for c in ["max_dpd"] + [f"emi_{i}_dpd" for i in range(1, self.label_months + 1)]:
             if c not in self.id_cols:
                 raise ValueError(f"{c!r} is used to build the label and must be in id_cols")
@@ -88,7 +113,8 @@ class Config:
             raise ValueError(
                 "splits must be ordered in time: "
                 f"train<={self.train_max_yearmo} < val=={self.val_yearmo} "
-                f"< hold_out=={self.hold_out_yearmo}")
+                f"< hold_out=={self.hold_out_yearmo}"
+            )
         if self.max_evals < 1:
             raise ValueError(f"max_evals must be >= 1, got {self.max_evals}")
         return self
@@ -138,7 +164,8 @@ class Config:
             except ImportError as e:
                 raise ImportError(
                     "PyYAML is required to read a .yaml config; "
-                    "use a .json config or `pip install pyyaml`") from e
+                    "use a .json config or `pip install pyyaml`"
+                ) from e
             return yaml.safe_load(text) or {}
         return json.loads(text)
 

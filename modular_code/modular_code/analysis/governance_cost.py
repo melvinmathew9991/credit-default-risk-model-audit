@@ -19,7 +19,6 @@ import sys
 import warnings
 
 import lightgbm as lgb
-import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score
 
@@ -33,21 +32,37 @@ warnings.filterwarnings("ignore")
 setup_logging("ERROR")
 cfg = Config()
 
-LGB_PARAMS = {'objective': 'binary', 'metric': 'auc', 'boosting': 'gbdt',
-              'num_leaves': 16, 'max_depth': 6, 'learning_rate': 0.02,
-              'feature_fraction': 0.8, 'bagging_fraction': 0.8, 'bagging_freq': 5,
-              'min_data_in_leaf': 200, 'lambda_l1': 1.0, 'lambda_l2': 1.0,
-              'random_seed': 2019, 'verbose': -1}
+LGB_PARAMS = {
+    "objective": "binary",
+    "metric": "auc",
+    "boosting": "gbdt",
+    "num_leaves": 16,
+    "max_depth": 6,
+    "learning_rate": 0.02,
+    "feature_fraction": 0.8,
+    "bagging_fraction": 0.8,
+    "bagging_freq": 5,
+    "min_data_in_leaf": 200,
+    "lambda_l1": 1.0,
+    "lambda_l2": 1.0,
+    "random_seed": 2019,
+    "verbose": -1,
+}
 ENC = dict(cfg.encoder_params, min_samples_leaf=1000, smoothing=1)
 
-LEAKAGE = ['total_payement', 'received_principal', 'interest_received',
-           'interest_received_ratio', 'total_payement_per_loan']
-PROTECTED = ['married', 'pincode']            # gender is already gone
-RESTRICTED = ['dependents', 'has_social_profile', 'is_verified']
+LEAKAGE = [
+    "total_payement",
+    "received_principal",
+    "interest_received",
+    "interest_received_ratio",
+    "total_payement_per_loan",
+]
+PROTECTED = ["married", "pincode"]  # gender is already gone
+RESTRICTED = ["dependents", "has_social_profile", "is_verified"]
 
 
 def load(collapse_placeholders):
-    df = utils.process_data(cfg.data_path, ['gender'])
+    df = utils.process_data(cfg.data_path, ["gender"])
     processing.create_label(df, cfg.label_dpd, cfg.label_months)
     if collapse_placeholders:
         processing.clean_placeholders(df)
@@ -60,29 +75,37 @@ def load(collapse_placeholders):
 def evaluate(train, val, features, label):
     cat = [c for c in features if train[c].dtype == object]
     enc = processing.categorical_encoding(ENC)
-    enc.fit(train, cat, 'label')
+    enc.fit(train, cat, "label")
     tr, va = enc.transform(train.copy()), enc.transform(val.copy())
 
-    m = lgb.train(LGB_PARAMS, lgb.Dataset(tr[features], label=tr.label), 3000,
-                  valid_sets=[lgb.Dataset(va[features], label=va.label)],
-                  valid_names=['val'],
-                  callbacks=[lgb.early_stopping(100, verbose=False),
-                             lgb.log_evaluation(0)])
+    m = lgb.train(
+        LGB_PARAMS,
+        lgb.Dataset(tr[features], label=tr.label),
+        3000,
+        valid_sets=[lgb.Dataset(va[features], label=va.label)],
+        valid_names=["val"],
+        callbacks=[lgb.early_stopping(100, verbose=False), lgb.log_evaluation(0)],
+    )
     auc = roc_auc_score(va.label, m.predict(va[features]))
-    return {"step": label, "n_features": len(features), "val_auc": auc,
-            "val_gini": 2 * auc - 1, "n_val_rows": len(va)}
+    return {
+        "step": label,
+        "n_features": len(features),
+        "val_auc": auc,
+        "val_gini": 2 * auc - 1,
+        "n_val_rows": len(va),
+    }
 
 
 def main():
     rows = []
     train, val = load(collapse_placeholders=False)
-    base = governance.permitted_features(train.columns, allow_restricted=True,
-                                         allow_leakage=True)
+    base = governance.permitted_features(train.columns, allow_restricted=True, allow_leakage=True)
 
     # 1. everything the original model could see
     f1 = sorted(set(base) | set(PROTECTED))
     governance.enforce_policy(
-        [c for c in f1 if c not in PROTECTED], allow_leakage=True)  # sanctioned baseline
+        [c for c in f1 if c not in PROTECTED], allow_leakage=True
+    )  # sanctioned baseline
     rows.append(evaluate(train, val, f1, "1. as originally built (leakage + protected)"))
 
     # 2. remove the post-origination fields
@@ -115,8 +138,10 @@ def main():
     print("-" * 96)
     for _, r in res.iterrows():
         chg = "" if pd.isna(r.gini_change) else f"{r.gini_change:+.4f}"
-        print(f"{r.step:<46}{r.n_features:>6}{r.val_auc:>10.4f}"
-              f"{r.val_gini:>10.4f}{chg:>10}{r.n_val_rows:>10,}")
+        print(
+            f"{r.step:<46}{r.n_features:>6}{r.val_auc:>10.4f}"
+            f"{r.val_gini:>10.4f}{chg:>10}{r.n_val_rows:>10,}"
+        )
     print("=" * 96)
     total = res.val_gini.iloc[-1] - res.val_gini.iloc[0]
     print(f"Total: {res.val_gini.iloc[0]:.4f} -> {res.val_gini.iloc[-1]:.4f} Gini ({total:+.4f})")

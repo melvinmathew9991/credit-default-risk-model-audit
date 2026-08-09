@@ -53,8 +53,7 @@ class ScoreScaler:
     600.0
     """
 
-    def __init__(self, pdo=20.0, base_score=600.0, base_odds=50.0,
-                 score_range=(300.0, 850.0)):
+    def __init__(self, pdo=20.0, base_score=600.0, base_odds=50.0, score_range=(300.0, 850.0)):
         if pdo <= 0:
             raise ValueError(f"pdo must be positive, got {pdo}")
         if base_odds <= 0:
@@ -81,9 +80,14 @@ class ScoreScaler:
         return 1.0 / (1.0 + odds)
 
     def describe(self):
-        return {"pdo": self.pdo, "base_score": self.base_score,
-                "base_odds": self.base_odds, "factor": self.factor,
-                "offset": self.offset, "score_range": self.score_range}
+        return {
+            "pdo": self.pdo,
+            "base_score": self.base_score,
+            "base_odds": self.base_odds,
+            "factor": self.factor,
+            "offset": self.offset,
+            "score_range": self.score_range,
+        }
 
 
 # ===========================================================================
@@ -92,19 +96,19 @@ class ScoreScaler:
 #: Feature -> (code, applicant-facing reason). Wording is deliberately about the
 #: applicant's own record, never about a group they belong to.
 REASON_CODES = {
-    "tier_of_employment":  ("R01", "Employer classification"),
-    "work_experience":     ("R02", "Length of employment history"),
-    "total_income":        ("R03", "Income relative to amount requested"),
-    "employment_type":     ("R04", "Type of employment"),
-    "industry":            ("R05", "Employer industry"),
-    "role":                ("R06", "Occupation"),
-    "home_type":           ("R07", "Housing status"),
-    "delinq_2yrs":         ("R08", "Delinquencies on prior credit obligations"),
-    "delinq_2yrs_ratio":   ("R09", "Proportion of prior obligations delinquent"),
-    "number_of_loans":     ("R10", "Number of prior credit obligations"),
-    "dependents":          ("R11", "Number of dependents"),
-    "has_social_profile":  ("R12", "Insufficient verifiable profile information"),
-    "is_verified":         ("R13", "Profile information could not be verified"),
+    "tier_of_employment": ("R01", "Employer classification"),
+    "work_experience": ("R02", "Length of employment history"),
+    "total_income": ("R03", "Income relative to amount requested"),
+    "employment_type": ("R04", "Type of employment"),
+    "industry": ("R05", "Employer industry"),
+    "role": ("R06", "Occupation"),
+    "home_type": ("R07", "Housing status"),
+    "delinq_2yrs": ("R08", "Delinquencies on prior credit obligations"),
+    "delinq_2yrs_ratio": ("R09", "Proportion of prior obligations delinquent"),
+    "number_of_loans": ("R10", "Number of prior credit obligations"),
+    "dependents": ("R11", "Number of dependents"),
+    "has_social_profile": ("R12", "Insufficient verifiable profile information"),
+    "is_verified": ("R13", "Profile information could not be verified"),
 }
 
 UNMAPPED = ("R99", "Other information in the application")
@@ -140,14 +144,19 @@ def reason_codes(shap_values, feature_names, top_n=4, min_contribution=1e-6):
     if shap_values.shape[1] != len(feature_names):
         raise ValueError(
             f"SHAP matrix has {shap_values.shape[1]} columns but "
-            f"{len(feature_names)} feature names were supplied")
+            f"{len(feature_names)} feature names were supplied"
+        )
 
     # You cannot cite more reasons than there are features. Without this the
     # slot loop indexes past the end of `order` and raises IndexError.
     n_slots = min(top_n, shap_values.shape[1])
     if n_slots < top_n:
-        logger.warning("asked for %d reasons but the model has only %d features; "
-                       "returning %d", top_n, shap_values.shape[1], n_slots)
+        logger.warning(
+            "asked for %d reasons but the model has only %d features; " "returning %d",
+            top_n,
+            shap_values.shape[1],
+            n_slots,
+        )
 
     order = np.argsort(-shap_values, axis=1)[:, :n_slots]
     out = {}
@@ -184,8 +193,13 @@ def reason_code_summary(reasons):
     if len(stacked) == 0:
         return pd.DataFrame(columns=["reason", "times_cited", "share_of_citations"])
     s = pd.Series(stacked).value_counts()
-    return pd.DataFrame({"reason": s.index, "times_cited": s.to_numpy(),
-                         "share_of_citations": s.to_numpy() / s.sum()})
+    return pd.DataFrame(
+        {
+            "reason": s.index,
+            "times_cited": s.to_numpy(),
+            "share_of_citations": s.to_numpy() / s.sum(),
+        }
+    )
 
 
 # ===========================================================================
@@ -210,7 +224,7 @@ def policy_table(y_true, pd_scores, scaler=None, steps=20):
     """
     y = np.asarray(y_true)
     p = np.asarray(pd_scores, dtype=float)
-    order = np.argsort(p)                     # safest first
+    order = np.argsort(p)  # safest first
     y_s, p_s = y[order], p[order]
     total_bads = int(y.sum())
 
@@ -243,9 +257,11 @@ def choose_cutoff(policy, max_bad_rate):
     """
     ok = policy[policy["bad_rate_of_book"] <= max_bad_rate]
     if ok.empty:
-        logger.warning("no cutoff achieves a book bad rate at or below %.4f; "
-                       "the best available is %.4f",
-                       max_bad_rate, policy["bad_rate_of_book"].min())
+        logger.warning(
+            "no cutoff achieves a book bad rate at or below %.4f; " "the best available is %.4f",
+            max_bad_rate,
+            policy["bad_rate_of_book"].min(),
+        )
         return None
     return ok.loc[ok["approval_rate"].idxmax()]
 

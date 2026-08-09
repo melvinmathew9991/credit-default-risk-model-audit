@@ -26,14 +26,15 @@ def test_defaults_are_valid():
 
 def test_label_must_be_a_non_feature_column():
     with pytest.raises(ValueError, match="label"):
-        Config(id_cols=["User_id", "yearmo", "max_dpd", "emi_1_dpd",
-                        "emi_2_dpd", "emi_3_dpd"])
+        Config(id_cols=["User_id", "yearmo", "max_dpd", "emi_1_dpd", "emi_2_dpd", "emi_3_dpd"])
 
 
 def test_label_source_columns_must_be_excluded():
     with pytest.raises(ValueError, match="emi_3_dpd"):
-        Config(id_cols=["User_id", "yearmo", "max_dpd", "emi_1_dpd",
-                        "emi_2_dpd", "label"], label_months=3)
+        Config(
+            id_cols=["User_id", "yearmo", "max_dpd", "emi_1_dpd", "emi_2_dpd", "label"],
+            label_months=3,
+        )
 
 
 def test_splits_must_be_ordered_in_time():
@@ -41,12 +42,15 @@ def test_splits_must_be_ordered_in_time():
         Config(train_max_yearmo=202205, val_yearmo=202204)
 
 
-@pytest.mark.parametrize("kwargs,match", [
-    ({"label_dpd": 45}, "label_dpd"),
-    ({"label_months": 0}, "label_months"),
-    ({"label_months": 9}, "label_months"),
-    ({"max_evals": 0}, "max_evals"),
-])
+@pytest.mark.parametrize(
+    "kwargs,match",
+    [
+        ({"label_dpd": 45}, "label_dpd"),
+        ({"label_months": 0}, "label_months"),
+        ({"label_months": 9}, "label_months"),
+        ({"max_evals": 0}, "max_evals"),
+    ],
+)
 def test_invalid_values_are_rejected(kwargs, match):
     with pytest.raises(ValueError, match=match):
         Config(**kwargs)
@@ -143,12 +147,10 @@ def test_train_lgb_refuses_to_train_on_the_target():
     """Guard against the C2 defect coming back."""
     df = pd.DataFrame({"label": [0, 1] * 20, "x": range(40)})
     with pytest.raises(ValueError, match="label"):
-        training.train_lgb(df, df, {"objective": "binary"},
-                           non_feature_cols=["x"])
+        training.train_lgb(df, df, {"objective": "binary"}, non_feature_cols=["x"])
 
 
 def test_train_lgb_requires_at_least_one_feature():
     df = pd.DataFrame({"label": [0, 1] * 20})
     with pytest.raises(ValueError, match="no feature columns"):
-        training.train_lgb(df, df, {"objective": "binary"},
-                           non_feature_cols=["label"])
+        training.train_lgb(df, df, {"objective": "binary"}, non_feature_cols=["label"])

@@ -68,8 +68,13 @@ class Calibrator:
 
         before = brier_score_loss(y, scores)
         after = brier_score_loss(y, self.transform(scores))
-        logger.info("calibration (%s) fitted on %d rows: in-sample Brier "
-                    "%.5f -> %.5f", self.method, len(y), before, after)
+        logger.info(
+            "calibration (%s) fitted on %d rows: in-sample Brier " "%.5f -> %.5f",
+            self.method,
+            len(y),
+            before,
+            after,
+        )
         return self
 
     def transform(self, scores):
@@ -130,6 +135,7 @@ def calibration_report(y, raw, calibrated, n_bins=10):
         "auc_delta": auc_delta,
         "auc_materially_changed": bool(abs(auc_delta) > 0.005),
         "brier_improvement": before["brier"] - after["brier"],
-        "ece_improvement": (before["expected_calibration_error"]
-                            - after["expected_calibration_error"]),
+        "ece_improvement": (
+            before["expected_calibration_error"] - after["expected_calibration_error"]
+        ),
     }

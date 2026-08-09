@@ -59,6 +59,7 @@ ml_pipeline/              importable pipeline stages
   config.py               configuration with validation
   logging_utils.py        logging setup
   governance.py           field classification and enforced feature policy
+  data_contract.py        input schema, quality tripwires, leakage screen
   utils.py                data loading and time-based splitting
   processing.py           labelling, feature engineering, encoding, selection
   training.py             hyperparameter space and LightGBM training
@@ -73,7 +74,8 @@ analysis/                 independent validation, not part of training
   encoder_sweep.py        how much categorical signal is recoverable
   governance_cost.py      what each governance decision cost, step by step
   cutoff_policy.py        approval rate vs book bad rate, on the hold-out
-tests/                    164 regression tests
+tests/                    205 regression tests
+validate_data.py          data contract gate (exit 1 on failure)
 output/                   artefacts from engine.py
 output_v2/                artefacts from engine_v2.py
 engine.py                 training entry point (original model)
@@ -97,7 +99,23 @@ MODEL_CARD.md             model card for v2
    tables, approval curve, feature importance and plots to `output/`.
 4. `python analysis/diagnostics.py` — runs the validation checks.
 5. `python predict.py --input <raw.csv> --output output/scores.csv` — batch scoring.
-6. `python -m pytest tests -q` — 164 regression tests.
+6. `python -m pytest tests -q` — 205 regression tests.
+
+#### Validating the data first
+
+```bash
+python validate_data.py                       # exits 1 if the contract fails
+python validate_data.py --no-strict           # report without failing
+```
+
+`ml_pipeline/data_contract.py` declares what good input looks like: schema, null
+rates, cardinality, ranges, and four tripwires drawn from the model review —
+type stability, placeholder spellings, degenerate columns, and a single-feature
+leakage screen. Both training entry points run it and record the result; use
+`--strict-validation` to make it a gate.
+
+On the shipped dataset it reports 2 errors and 7 warnings, and independently
+rediscovers findings H1, H2, M7, M10 and C1.
 
 #### Scoring with the governed model
 

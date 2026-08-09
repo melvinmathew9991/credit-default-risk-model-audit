@@ -1,6 +1,5 @@
 # imort libraries
 import pandas as pd
-import numpy as np
 
 from .logging_utils import get_logger
 
@@ -79,7 +78,8 @@ def data_split(df, train_max_yearmo=202203, val_yearmo=202204, hold_out_yearmo=2
     if not (train_max_yearmo < val_yearmo < hold_out_yearmo):
         raise ValueError(
             f"splits must be ordered in time: train<={train_max_yearmo} "
-            f"< val=={val_yearmo} < hold_out=={hold_out_yearmo}")
+            f"< val=={val_yearmo} < hold_out=={hold_out_yearmo}"
+        )
 
     train = df[df.yearmo <= train_max_yearmo]
     val = df[df.yearmo == val_yearmo]
@@ -89,10 +89,12 @@ def data_split(df, train_max_yearmo=202203, val_yearmo=202204, hold_out_yearmo=2
         if len(part) == 0:
             raise ValueError(
                 f"{name} split is empty - check the yearmo boundaries against "
-                f"the data, which covers {sorted(df.yearmo.unique())}")
+                f"the data, which covers {sorted(df.yearmo.unique())}"
+            )
 
-    logger.info("split rows - train=%d val=%d hold_out=%d",
-                len(train), len(val), len(hold_out))
-    return (train.reset_index(drop=True),
-            val.reset_index(drop=True),
-            hold_out.reset_index(drop=True))
+    logger.info("split rows - train=%d val=%d hold_out=%d", len(train), len(val), len(hold_out))
+    return (
+        train.reset_index(drop=True),
+        val.reset_index(drop=True),
+        hold_out.reset_index(drop=True),
+    )

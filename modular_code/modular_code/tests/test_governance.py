@@ -23,15 +23,24 @@ def test_protected_attributes_are_prohibited(col):
     assert governance.classify(col) is Classification.PROHIBITED
 
 
-@pytest.mark.parametrize("col", ["total_payement", "received_principal",
-                                 "interest_received", "interest_received_ratio",
-                                 "total_payement_per_loan"])
+@pytest.mark.parametrize(
+    "col",
+    [
+        "total_payement",
+        "received_principal",
+        "interest_received",
+        "interest_received_ratio",
+        "total_payement_per_loan",
+    ],
+)
 def test_post_origination_fields_are_leakage(col):
     assert governance.classify(col) is Classification.LEAKAGE
 
 
-@pytest.mark.parametrize("col", ["total_income", "employment_type", "delinq_2yrs",
-                                 "home_type", "role", "number_of_loans"])
+@pytest.mark.parametrize(
+    "col",
+    ["total_income", "employment_type", "delinq_2yrs", "home_type", "role", "number_of_loans"],
+)
 def test_standard_credit_attributes_are_permitted(col):
     assert governance.classify(col) is Classification.PERMITTED
 
@@ -63,8 +72,7 @@ def test_leakage_feature_blocks_the_run_by_default():
 
 
 def test_leakage_allowed_only_with_the_explicit_escape_hatch():
-    out = governance.enforce_policy(["total_income", "received_principal"],
-                                    allow_leakage=True)
+    out = governance.enforce_policy(["total_income", "received_principal"], allow_leakage=True)
     assert "received_principal" in out
 
 
@@ -90,8 +98,15 @@ def test_permitted_run_passes():
 
 # ----------------------------------------------------------------- selection
 def test_permitted_features_excludes_prohibited_and_leakage():
-    cols = ["total_income", "married", "pincode", "received_principal",
-            "employment_type", "User_id", "label"]
+    cols = [
+        "total_income",
+        "married",
+        "pincode",
+        "received_principal",
+        "employment_type",
+        "User_id",
+        "label",
+    ]
     out = governance.permitted_features(cols)
     assert set(out) == {"total_income", "employment_type"}
 
@@ -115,8 +130,9 @@ def test_the_permitted_set_survives_enforcement():
 
 # ----------------------------------------------------------------------- PII
 def test_pii_columns_are_flagged():
-    pii = governance.pii_columns(["User_id", "gender", "married", "dependents",
-                                  "total_income", "home_type"])
+    pii = governance.pii_columns(
+        ["User_id", "gender", "married", "dependents", "total_income", "home_type"]
+    )
     assert "User_id" in pii and "total_income" not in pii
 
 
@@ -138,10 +154,12 @@ def test_data_fingerprint_is_stable_and_detects_change(tmp_path):
 
 # -------------------------------------------------------------- placeholders
 def test_clean_placeholders_maps_both_spellings_to_missing():
-    df = pd.DataFrame({
-        "work_experience": ["0", "0.0", "5-10", "10+", np.nan],
-        "industry": ["0", "0.0", "abc", "def", "ghi"],
-    })
+    df = pd.DataFrame(
+        {
+            "work_experience": ["0", "0.0", "5-10", "10+", np.nan],
+            "industry": ["0", "0.0", "abc", "def", "ghi"],
+        }
+    )
     processing.clean_placeholders(df)
     assert df["work_experience"].tolist()[2:4] == ["5-10", "10+"]
     assert df["work_experience"].isna().sum() == 3

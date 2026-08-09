@@ -1,0 +1,8 @@
+# Development and CI tooling. Runtime dependencies are pinned separately in
+# modular_code/modular_code/requirements.txt.
+pytest==8.3.3
+ruff==0.6.9
+pre-commit==3.8.0
+
+# hyperopt 0.2.7 imports pkg_resources, which setuptools removed in 81.
+setuptools<81

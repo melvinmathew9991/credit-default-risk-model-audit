@@ -11,6 +11,7 @@ import os
 import sys
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
@@ -47,16 +48,18 @@ def test_column_helpers_use_public_api():
 
 # ------------------------------------------------------------------ #15, #19
 def test_window_roll_rate_does_not_mutate_input():
-    df = pd.DataFrame({
-        "User_id": [1, 2, 3, 4],
-        "max_dpd": [90, 60, 0, 90],
-        "emi_1_dpd": [90, 0, 0, 0],
-        "emi_2_dpd": [0, 60, 0, 0],
-        "emi_3_dpd": [0, 0, 0, 90],
-        "emi_4_dpd": [0, 0, 0, 0],
-        "emi_5_dpd": [0, 0, 0, 0],
-        "emi_6_dpd": [0, 0, 0, 0],
-    })
+    df = pd.DataFrame(
+        {
+            "User_id": [1, 2, 3, 4],
+            "max_dpd": [90, 60, 0, 90],
+            "emi_1_dpd": [90, 0, 0, 0],
+            "emi_2_dpd": [0, 60, 0, 0],
+            "emi_3_dpd": [0, 0, 0, 90],
+            "emi_4_dpd": [0, 0, 0, 0],
+            "emi_5_dpd": [0, 0, 0, 0],
+            "emi_6_dpd": [0, 0, 0, 0],
+        }
+    )
     before = df.columns.tolist()
     out = utils.window_roll_rate(df, 60)
     # the helper must not write a working column back into the caller's frame
@@ -127,7 +130,7 @@ def test_cutoff_score_respects_the_target_default_rate(toy):
     y, p = toy
     target = 0.05
     cutoff = utils.cutoff_score(y, p, target)
-    accepted = pd.DataFrame({"y": y, "p": p}).query("p <= @cutoff")
+    accepted = pd.DataFrame({"y": y, "p": p}).loc[lambda d: d["p"] <= cutoff]
     assert len(accepted) > 0
     assert accepted["y"].mean() <= target + 1e-9
 
@@ -137,7 +140,7 @@ def test_cutoff_score_denominator_counts_accepted_accounts():
     y = np.array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
     p = np.arange(10) / 10.0
     cutoff = utils.cutoff_score(y, p, 0.11)
-    accepted = pd.DataFrame({"y": y, "p": p}).query("p <= @cutoff")
+    accepted = pd.DataFrame({"y": y, "p": p}).loc[lambda d: d["p"] <= cutoff]
     # 1 bad in the first 10 accounts is exactly 10% - within a 11% appetite
     assert accepted["y"].mean() <= 0.11
 
@@ -155,7 +158,8 @@ def test_plot_helpers_close_their_figures(toy):
 
 # ------------------------------------------------------------------ #20
 def test_dead_imports_removed():
-    src = open(os.path.join(ROOT, "lib", "utils.py"), encoding="utf-8").read()
+    with open(os.path.join(ROOT, "lib", "utils.py"), encoding="utf-8") as fh:
+        src = fh.read()
     for dead in ["import bisect", "OneHotEncoder", "import random", "import datetime"]:
         assert dead not in src, f"unused import still present: {dead}"
 
@@ -167,6 +171,8 @@ def test_notebook_utils_copies_are_in_sync():
     b = os.path.abspath(os.path.join(ROOT, "..", "..", "notebooks", "notebooks", "utils.py"))
     if not os.path.exists(b):
         pytest.skip("notebooks copy not present")
-    assert open(a, "rb").read() == open(b, "rb").read(), (
-        "lib/utils.py and notebooks/notebooks/utils.py have diverged - "
-        "fix one and copy it over the other")
+    with open(a, "rb") as fa, open(b, "rb") as fb:
+        assert fa.read() == fb.read(), (
+            "lib/utils.py and notebooks/notebooks/utils.py have diverged - "
+            "fix one and copy it over the other"
+        )

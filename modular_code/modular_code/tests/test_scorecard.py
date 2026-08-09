@@ -10,15 +10,20 @@ import os
 import sys
 
 import numpy as np
-import pandas as pd
 import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from ml_pipeline.scorecard import (REASON_CODES, ScoreScaler,  # noqa: E402
-                                   choose_cutoff, expected_loss, policy_table,
-                                   reason_code_summary, reason_codes,
-                                   unmapped_features)
+from ml_pipeline.scorecard import (  # noqa: E402
+    REASON_CODES,
+    ScoreScaler,
+    choose_cutoff,
+    expected_loss,
+    policy_table,
+    reason_code_summary,
+    reason_codes,
+    unmapped_features,
+)
 
 
 # ============================================================ points scaling
@@ -30,7 +35,7 @@ def test_base_odds_map_to_base_score():
 def test_pdo_is_the_points_that_double_the_odds():
     s = ScoreScaler(pdo=20, base_score=600, base_odds=50, score_range=None)
     at_50 = s.to_points(1 / 51)
-    at_100 = s.to_points(1 / 101)          # odds doubled
+    at_100 = s.to_points(1 / 101)  # odds doubled
     assert at_100 - at_50 == pytest.approx(20.0, abs=1e-6)
 
 
@@ -73,11 +78,13 @@ def test_invalid_scaling_parameters_are_rejected(kwargs):
 @pytest.fixture
 def shap_matrix():
     # 3 applicants x 4 features
-    return np.array([
-        [0.9, 0.4, -0.2, 0.1],     # feature 0 dominates
-        [-0.5, 0.8, 0.7, -0.1],    # features 1 then 2
-        [-0.3, -0.2, -0.1, -0.4],  # nothing pushes toward default
-    ]), ["total_income", "delinq_2yrs", "home_type", "role"]
+    return np.array(
+        [
+            [0.9, 0.4, -0.2, 0.1],  # feature 0 dominates
+            [-0.5, 0.8, 0.7, -0.1],  # features 1 then 2
+            [-0.3, -0.2, -0.1, -0.4],  # nothing pushes toward default
+        ]
+    ), ["total_income", "delinq_2yrs", "home_type", "role"]
 
 
 def test_reasons_are_ranked_by_contribution(shap_matrix):
@@ -141,18 +148,24 @@ def test_shap_shape_is_validated():
 
 def test_every_v2_model_feature_has_applicant_facing_text():
     """A decline explained as 'other information' is not an acceptable reason."""
-    path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                        "output_v2", "feature_columns_v2.json")
+    path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "output_v2",
+        "feature_columns_v2.json",
+    )
     if not os.path.exists(path):
         pytest.skip("requires a completed engine_v2.py run")
     import json
-    assert unmapped_features(json.load(open(path))) == []
+
+    with open(path) as fh:
+        features = json.load(fh)
+    assert unmapped_features(features) == []
 
 
 def test_reason_summary_counts_citations(shap_matrix):
     sv, names = shap_matrix
     s = reason_code_summary(reason_codes(sv, names, top_n=2))
-    assert s["times_cited"].sum() == 4          # rows 0 and 1 cite two each
+    assert s["times_cited"].sum() == 4  # rows 0 and 1 cite two each
     assert s["share_of_citations"].sum() == pytest.approx(1.0)
 
 

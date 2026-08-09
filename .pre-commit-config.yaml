@@ -1,0 +1,47 @@
+# Install once with:  pre-commit install
+# Run over everything: pre-commit run --all-files
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: debug-statements
+      - id: check-added-large-files
+        # the 23 MB dataset is tracked deliberately; nothing else that size should be
+        args: ["--maxkb=25000"]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      # Personal data must not reach version control. This has already happened
+      # once: output_v2/scores_v2.csv was committed because the ignore rule said
+      # scores.csv and the file was scores_v2.csv.
+      - id: no-scored-output
+        name: block scored output files (they carry personal data)
+        entry: >-
+          bash -c 'if git diff --cached --name-only | grep -Ei "(^|/)(scores|.*_scores)[^/]*\.csv$";
+          then echo "ERROR: scored output is keyed by User_id and must not be committed"; exit 1; fi'
+        language: system
+        pass_filenames: false
+
+      # lib/utils.py and notebooks/notebooks/utils.py are maintained as
+      # byte-identical copies; a test enforces it, but catch it earlier.
+      - id: utils-copies-in-sync
+        name: notebook utils copies must stay identical
+        entry: >-
+          bash -c 'cmp -s "modular_code/modular_code/lib/utils.py"
+          "notebooks/notebooks/utils.py" || { echo "ERROR: the two utils.py copies have diverged";
+          exit 1; }'
+        language: system
+        pass_filenames: false

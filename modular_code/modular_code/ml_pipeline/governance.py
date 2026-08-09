@@ -26,9 +26,9 @@ References that informed the defaults:
   - SR 11-7 (US Federal Reserve) - model risk management documentation
 """
 
-from enum import Enum
 import hashlib
 import os
+from enum import Enum
 
 
 class Classification(str, Enum):
@@ -65,97 +65,143 @@ class Field:
         return f"Field({self.name!r}, {self.classification.value})"
 
 
-P, R, X, L, N = (Classification.PERMITTED, Classification.RESTRICTED,
-                 Classification.PROHIBITED, Classification.LEAKAGE,
-                 Classification.NON_FEATURE)
+P, R, X, L, N = (
+    Classification.PERMITTED,
+    Classification.RESTRICTED,
+    Classification.PROHIBITED,
+    Classification.LEAKAGE,
+    Classification.NON_FEATURE,
+)
 
 
-FIELD_REGISTER = {f.name: f for f in [
-    # ---------------------------------------------------------- identifiers
-    Field("User_id", N, pii=True,
-          rationale="Direct identifier. Join key only; never a feature. Any file "
-                    "keyed by it inherits the dataset's confidentiality class."),
-    Field("yearmo", N,
-          rationale="Application month. Defines the time-based split; not a feature."),
-
-    # ---------------------------------------------------------- target
-    Field("label", N,
-          rationale="Modelling target: 60+ DPD within the first 3 EMIs."),
-    *[Field(f"emi_{i}_dpd", N,
-            rationale="Repayment outcome the label is derived from.")
-      for i in range(1, 7)],
-    Field("max_dpd", N,
-          rationale="Repayment outcome the label is derived from."),
-
-    # ---------------------------------------------------------- prohibited
-    Field("gender", X, pii=True,
-          rationale="Sex is a prohibited basis under ECOA/Reg B 1002.6(b)(9). "
-                    "Excluded by the project from the outset."),
-    Field("married", X, pii=True,
-          rationale="Marital status is a prohibited basis under ECOA/Reg B "
-                    "1002.6(b)(8); it may be collected only to determine rights "
-                    "and remedies on the specific credit extension, not scored. "
-                    "Was a live feature in the original model."),
-    Field("pincode", X,
-          rationale="Geographic identifier. Area-level attributes are a "
-                    "recognised redlining proxy for protected characteristics "
-                    "(Fair Housing Act; RBI fair practices). Excluded unless "
-                    "disparate-impact tested, which requires demographic data "
-                    "this dataset does not contain."),
-
-    # ---------------------------------------------------------- restricted
-    Field("dependents", R, pii=True,
-          rationale="Number of dependents may be collected and considered for "
-                    "repayment capacity under Reg B 1002.5(d)(3), but it is "
-                    "adjacent to familial status. Permitted with fairness "
-                    "monitoring; contributes almost nothing (univariate Gini "
-                    "0.0016), so exclusion is close to costless."),
-    Field("has_social_profile", R,
-          rationale="Alternative data. Social-media presence can proxy for age "
-                    "and national origin. RBI digital lending guidance requires "
-                    "explicit justification for non-traditional attributes."),
-    Field("is_verified", R,
-          rationale="Verification status of the social profile - inherits the "
-                    "concerns of has_social_profile."),
-
-    # ---------------------------------------------------------- leakage
-    Field("total_payement", L,
-          rationale="Repayment on the loan being scored, not prior loans - see "
-                    "MODEL_REVIEW.md finding C1. Unavailable at application."),
-    Field("received_principal", L,
-          rationale="Repayment on the loan being scored. Unavailable at application."),
-    Field("interest_received", L,
-          rationale="Repayment on the loan being scored. Unavailable at application."),
-    Field("interest_received_ratio", L,
-          rationale="Derived from interest_received / total_payement."),
-    Field("total_payement_per_loan", L,
-          rationale="Derived from total_payement."),
-
-    # ---------------------------------------------------------- permitted
-    Field("total_income", P,
-          rationale="Declared income. Standard capacity attribute."),
-    Field("employment_type", P,
-          rationale="Salaried vs self-employed. Standard stability attribute."),
-    Field("tier_of_employment", P,
-          rationale="Employer tier. Standard stability attribute."),
-    Field("industry", P,
-          rationale="Employer industry. Standard stability attribute. NOTE: 84% "
-                    "of values are a placeholder zero - see clean_placeholders()."),
-    Field("role", P,
-          rationale="Role at employer. Standard stability attribute."),
-    Field("work_experience", P,
-          rationale="Length of employment. Standard stability attribute. NOTE: "
-                    "84% placeholder - see clean_placeholders()."),
-    Field("home_type", P,
-          rationale="Rent / own / mortgage. A standard, long-accepted credit "
-                    "bureau attribute; not a protected basis."),
-    Field("delinq_2yrs", P,
-          rationale="Prior delinquency count. Core credit history attribute."),
-    Field("delinq_2yrs_ratio", P,
-          rationale="Derived from delinq_2yrs and number_of_loans."),
-    Field("number_of_loans", P,
-          rationale="Prior loan count. Core credit history attribute."),
-]}
+FIELD_REGISTER = {
+    f.name: f
+    for f in [
+        # ---------------------------------------------------------- identifiers
+        Field(
+            "User_id",
+            N,
+            pii=True,
+            rationale="Direct identifier. Join key only; never a feature. Any file "
+            "keyed by it inherits the dataset's confidentiality class.",
+        ),
+        Field(
+            "yearmo", N, rationale="Application month. Defines the time-based split; not a feature."
+        ),
+        # ---------------------------------------------------------- target
+        Field("label", N, rationale="Modelling target: 60+ DPD within the first 3 EMIs."),
+        *[
+            Field(f"emi_{i}_dpd", N, rationale="Repayment outcome the label is derived from.")
+            for i in range(1, 7)
+        ],
+        Field("max_dpd", N, rationale="Repayment outcome the label is derived from."),
+        # ---------------------------------------------------------- prohibited
+        Field(
+            "gender",
+            X,
+            pii=True,
+            rationale="Sex is a prohibited basis under ECOA/Reg B 1002.6(b)(9). "
+            "Excluded by the project from the outset.",
+        ),
+        Field(
+            "married",
+            X,
+            pii=True,
+            rationale="Marital status is a prohibited basis under ECOA/Reg B "
+            "1002.6(b)(8); it may be collected only to determine rights "
+            "and remedies on the specific credit extension, not scored. "
+            "Was a live feature in the original model.",
+        ),
+        Field(
+            "pincode",
+            X,
+            rationale="Geographic identifier. Area-level attributes are a "
+            "recognised redlining proxy for protected characteristics "
+            "(Fair Housing Act; RBI fair practices). Excluded unless "
+            "disparate-impact tested, which requires demographic data "
+            "this dataset does not contain.",
+        ),
+        # ---------------------------------------------------------- restricted
+        Field(
+            "dependents",
+            R,
+            pii=True,
+            rationale="Number of dependents may be collected and considered for "
+            "repayment capacity under Reg B 1002.5(d)(3), but it is "
+            "adjacent to familial status. Permitted with fairness "
+            "monitoring; contributes almost nothing (univariate Gini "
+            "0.0016), so exclusion is close to costless.",
+        ),
+        Field(
+            "has_social_profile",
+            R,
+            rationale="Alternative data. Social-media presence can proxy for age "
+            "and national origin. RBI digital lending guidance requires "
+            "explicit justification for non-traditional attributes.",
+        ),
+        Field(
+            "is_verified",
+            R,
+            rationale="Verification status of the social profile - inherits the "
+            "concerns of has_social_profile.",
+        ),
+        # ---------------------------------------------------------- leakage
+        Field(
+            "total_payement",
+            L,
+            rationale="Repayment on the loan being scored, not prior loans - see "
+            "MODEL_REVIEW.md finding C1. Unavailable at application.",
+        ),
+        Field(
+            "received_principal",
+            L,
+            rationale="Repayment on the loan being scored. Unavailable at application.",
+        ),
+        Field(
+            "interest_received",
+            L,
+            rationale="Repayment on the loan being scored. Unavailable at application.",
+        ),
+        Field(
+            "interest_received_ratio",
+            L,
+            rationale="Derived from interest_received / total_payement.",
+        ),
+        Field("total_payement_per_loan", L, rationale="Derived from total_payement."),
+        # ---------------------------------------------------------- permitted
+        Field("total_income", P, rationale="Declared income. Standard capacity attribute."),
+        Field(
+            "employment_type",
+            P,
+            rationale="Salaried vs self-employed. Standard stability attribute.",
+        ),
+        Field("tier_of_employment", P, rationale="Employer tier. Standard stability attribute."),
+        Field(
+            "industry",
+            P,
+            rationale="Employer industry. Standard stability attribute. NOTE: 84% "
+            "of values are a placeholder zero - see clean_placeholders().",
+        ),
+        Field("role", P, rationale="Role at employer. Standard stability attribute."),
+        Field(
+            "work_experience",
+            P,
+            rationale="Length of employment. Standard stability attribute. NOTE: "
+            "84% placeholder - see clean_placeholders().",
+        ),
+        Field(
+            "home_type",
+            P,
+            rationale="Rent / own / mortgage. A standard, long-accepted credit "
+            "bureau attribute; not a protected basis.",
+        ),
+        Field(
+            "delinq_2yrs", P, rationale="Prior delinquency count. Core credit history attribute."
+        ),
+        Field("delinq_2yrs_ratio", P, rationale="Derived from delinq_2yrs and number_of_loans."),
+        Field("number_of_loans", P, rationale="Prior loan count. Core credit history attribute."),
+    ]
+}
 
 
 class PolicyViolation(Exception):
@@ -209,7 +255,8 @@ def permitted_features(columns, allow_restricted=True, allow_leakage=False):
         raise PolicyViolation(
             f"columns are not in the governance register and cannot be used "
             f"until classified: {unknown}. Add them to FIELD_REGISTER in "
-            f"ml_pipeline/governance.py with a rationale.")
+            f"ml_pipeline/governance.py with a rationale."
+        )
     return out
 
 
@@ -240,8 +287,7 @@ def enforce_policy(feature_names, allow_leakage=False):
             problems.append(f"{c}: LEAKAGE - {FIELD_REGISTER[c].rationale}")
 
     if problems:
-        raise PolicyViolation(
-            "feature governance policy violated:\n  - " + "\n  - ".join(problems))
+        raise PolicyViolation("feature governance policy violated:\n  - " + "\n  - ".join(problems))
     return list(feature_names)
 
 
@@ -251,8 +297,7 @@ def pii_columns(columns):
     Used to keep identifiers out of logs and to label any output file that
     carries them.
     """
-    return [c for c in columns
-            if c in FIELD_REGISTER and FIELD_REGISTER[c].pii]
+    return [c for c in columns if c in FIELD_REGISTER and FIELD_REGISTER[c].pii]
 
 
 def policy_summary():
@@ -273,6 +318,4 @@ def data_fingerprint(path, block=1 << 20):
     with open(path, "rb") as fh:
         for chunk in iter(lambda: fh.read(block), b""):
             h.update(chunk)
-    return {"path": os.path.abspath(path),
-            "sha256": h.hexdigest(),
-            "bytes": os.path.getsize(path)}
+    return {"path": os.path.abspath(path), "sha256": h.hexdigest(), "bytes": os.path.getsize(path)}

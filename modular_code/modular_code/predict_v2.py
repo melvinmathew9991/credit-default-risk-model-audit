@@ -30,10 +30,10 @@ import lightgbm as lgb
 import numpy as np
 import pandas as pd
 
-from ml_pipeline import governance, processing, utils
+from ml_pipeline import governance, processing
+from ml_pipeline.data_contract import validate_raw_data
 from ml_pipeline.logging_utils import get_logger, setup_logging
-from ml_pipeline.scorecard import (ScoreScaler, reason_code_summary,
-                                   reason_codes, unmapped_features)
+from ml_pipeline.scorecard import ScoreScaler, reason_code_summary, reason_codes, unmapped_features
 
 logger = get_logger("predict_v2")
 
@@ -48,20 +48,35 @@ ARTEFACTS = {
 
 def parse_args(argv=None):
     p = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     p.add_argument("--input", required=True, help="raw application csv")
     p.add_argument("--artifacts", default="output_v2")
     p.add_argument("--output", default=None, help="defaults to <artifacts>/scores_v2.csv")
     p.add_argument("--id-col", default="User_id")
-    p.add_argument("--cutoff-score", type=float, default=None,
-                   help="approve at or above this score; declines get reasons")
-    p.add_argument("--cutoff-pd", type=float, default=None,
-                   help="alternative cutoff expressed as a probability of default")
-    p.add_argument("--reasons", action="store_true",
-                   help="always emit reason codes, not only for declines")
+    p.add_argument(
+        "--cutoff-score",
+        type=float,
+        default=None,
+        help="approve at or above this score; declines get reasons",
+    )
+    p.add_argument(
+        "--cutoff-pd",
+        type=float,
+        default=None,
+        help="alternative cutoff expressed as a probability of default",
+    )
+    p.add_argument(
+        "--reasons", action="store_true", help="always emit reason codes, not only for declines"
+    )
     p.add_argument("--pdo", type=float, default=20.0)
     p.add_argument("--base-score", dest="base_score", type=float, default=600.0)
     p.add_argument("--base-odds", dest="base_odds", type=float, default=50.0)
+    p.add_argument(
+        "--strict-validation",
+        action="store_true",
+        help="refuse to score input that breaches the data contract",
+    )
     p.add_argument("--log-level", dest="log_level", default="INFO")
     return p.parse_args(argv)
 
@@ -71,7 +86,8 @@ def load_artifacts(d):
     missing = [n for n in ARTEFACTS.values() if not os.path.exists(os.path.join(d, n))]
     if missing:
         raise FileNotFoundError(
-            f"missing v2 artefacts in {d!r}: {missing}. Run `python engine_v2.py` first.")
+            f"missing v2 artefacts in {d!r}: {missing}. Run `python engine_v2.py` first."
+        )
 
     model = lgb.Booster(model_file=os.path.join(d, ARTEFACTS["model"]))
     with open(os.path.join(d, ARTEFACTS["encoder"]), "rb") as f:
@@ -120,29 +136,43 @@ def main(argv=None):
     setup_logging(args.log_level)
 
     model, encoder, calibrator, features, manifest = load_artifacts(args.artifacts)
-    logger.info("model trained %s on %d features, %d trees",
-                manifest["created_utc"], len(features), model.num_trees())
+    logger.info(
+        "model trained %s on %d features, %d trees",
+        manifest["created_utc"],
+        len(features),
+        model.num_trees(),
+    )
 
     gaps = unmapped_features(features)
     if gaps:
-        logger.warning("no applicant-facing reason text for %s - declines citing "
-                       "these would only say 'other information'", gaps)
+        logger.warning(
+            "no applicant-facing reason text for %s - declines citing "
+            "these would only say 'other information'",
+            gaps,
+        )
 
     raw_df = pd.read_csv(args.input, low_memory=False)
     logger.info("scoring %d applications from %s", len(raw_df), args.input)
 
+    # Validate what arrives for scoring, not only what was used for training.
+    # Incoming data drifting away from the training schema is the usual way a
+    # deployed model starts producing quiet nonsense.
+    validate_raw_data(raw_df, strict=args.strict_validation)
+
     X = prepare(raw_df, encoder, features)
 
     raw = model.predict(X[features])
-    pd_hat = calibrator.transform(raw)          # never optional
+    pd_hat = calibrator.transform(raw)  # never optional
     scaler = ScoreScaler(args.pdo, args.base_score, args.base_odds)
     points = scaler.to_points(pd_hat)
 
-    out = pd.DataFrame({
-        args.id_col: raw_df[args.id_col] if args.id_col in raw_df else np.arange(len(raw_df)),
-        "pd": pd_hat,
-        "score": points.round(0).astype(int),
-    })
+    out = pd.DataFrame(
+        {
+            args.id_col: raw_df[args.id_col] if args.id_col in raw_df else np.arange(len(raw_df)),
+            "pd": pd_hat,
+            "score": points.round(0).astype(int),
+        }
+    )
 
     cutoff_pd = args.cutoff_pd
     if args.cutoff_score is not None:
@@ -150,9 +180,14 @@ def main(argv=None):
     if cutoff_pd is not None:
         out["decision"] = np.where(out["pd"] <= cutoff_pd, "APPROVE", "DECLINE")
         n_dec = int((out["decision"] == "DECLINE").sum())
-        logger.info("cutoff pd=%.4f (score %.0f): %d approved, %d declined (%.1f%%)",
-                    cutoff_pd, scaler.to_points(cutoff_pd),
-                    len(out) - n_dec, n_dec, 100 * n_dec / len(out))
+        logger.info(
+            "cutoff pd=%.4f (score %.0f): %d approved, %d declined (%.1f%%)",
+            cutoff_pd,
+            scaler.to_points(cutoff_pd),
+            len(out) - n_dec,
+            n_dec,
+            100 * n_dec / len(out),
+        )
 
     if args.reasons or cutoff_pd is not None:
         reasons = explain(model, X, features)
@@ -170,29 +205,41 @@ def main(argv=None):
     print("\n" + "=" * 78)
     print(f"Scored {len(out):,} applications -> {dest}")
     print("=" * 78)
-    print(f"scaling: PDO={scaler.pdo:.0f}, {scaler.base_score:.0f} points at "
-          f"{scaler.base_odds:.0f}:1 odds")
-    print(f"\nprobability of default: mean {out['pd'].mean():.4f}  "
-          f"median {out['pd'].median():.4f}  "
-          f"p5 {out['pd'].quantile(0.05):.4f}  p95 {out['pd'].quantile(0.95):.4f}")
-    print(f"score points          : mean {out['score'].mean():.0f}  "
-          f"median {out['score'].median():.0f}  "
-          f"min {out['score'].min()}  max {out['score'].max()}")
+    print(
+        f"scaling: PDO={scaler.pdo:.0f}, {scaler.base_score:.0f} points at "
+        f"{scaler.base_odds:.0f}:1 odds"
+    )
+    print(
+        f"\nprobability of default: mean {out['pd'].mean():.4f}  "
+        f"median {out['pd'].median():.4f}  "
+        f"p5 {out['pd'].quantile(0.05):.4f}  p95 {out['pd'].quantile(0.95):.4f}"
+    )
+    print(
+        f"score points          : mean {out['score'].mean():.0f}  "
+        f"median {out['score'].median():.0f}  "
+        f"min {out['score'].min()}  max {out['score'].max()}"
+    )
 
     if "decision" in out:
         print(f"\ndecisions: {out['decision'].value_counts().to_dict()}")
         dec = out[out["decision"] == "DECLINE"]
         if len(dec):
             print("\nprincipal reasons cited across declines:")
-            print(reason_code_summary(dec).to_string(
-                index=False, float_format=lambda v: f"{v:.3f}"))
+            print(
+                reason_code_summary(dec).to_string(index=False, float_format=lambda v: f"{v:.3f}")
+            )
             print("\nexample declines:")
             cols = [args.id_col, "score", "pd", "reason_1", "reason_2", "reason_3"]
-            print(dec[[c for c in cols if c in dec]].head(5).to_string(
-                index=False, float_format=lambda v: f"{v:.4f}"))
+            print(
+                dec[[c for c in cols if c in dec]]
+                .head(5)
+                .to_string(index=False, float_format=lambda v: f"{v:.4f}")
+            )
 
-    print("\nNOTE: this file is keyed by an identifier and carries personal data. "
-          "Handle per DATA.md.")
+    print(
+        "\nNOTE: this file is keyed by an identifier and carries personal data. "
+        "Handle per DATA.md."
+    )
     return 0
 
 

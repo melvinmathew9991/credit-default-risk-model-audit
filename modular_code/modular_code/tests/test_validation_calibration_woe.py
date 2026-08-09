@@ -11,25 +11,29 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from ml_pipeline import woe  # noqa: E402
 from ml_pipeline.calibration import Calibrator, calibration_report  # noqa: E402
-from ml_pipeline.validation import (drop_leaked_users,  # noqa: E402
-                                    expanding_window_folds, summarise_folds)
+from ml_pipeline.validation import (  # noqa: E402
+    drop_leaked_users,
+    expanding_window_folds,
+    summarise_folds,
+)
 
 
 # ================================================================ validation
 @pytest.fixture
 def months_df():
-    return pd.DataFrame({
-        "yearmo": [202201] * 3 + [202202] * 3 + [202203] * 3 + [202204] * 3,
-        "User_id": range(12),
-    })
+    return pd.DataFrame(
+        {
+            "yearmo": [202201] * 3 + [202202] * 3 + [202203] * 3 + [202204] * 3,
+            "User_id": range(12),
+        }
+    )
 
 
 def test_folds_are_walk_forward(months_df):
     folds = list(expanding_window_folds(months_df, min_train_months=1))
     assert len(folds) == 3
     assert [f[2] for f in folds] == [202202, 202203, 202204]
-    assert [f[1] for f in folds] == [[202201], [202201, 202202],
-                                     [202201, 202202, 202203]]
+    assert [f[1] for f in folds] == [[202201], [202201, 202202], [202201, 202202, 202203]]
 
 
 def test_training_window_always_precedes_validation(months_df):
@@ -95,7 +99,7 @@ def miscalibrated():
     n = 8000
     true_p = rng.uniform(0.01, 0.4, size=n)
     y = (rng.uniform(size=n) < true_p).astype(int)
-    raw = np.clip(true_p * 2.2, 0, 0.999)      # inflated but monotone in true_p
+    raw = np.clip(true_p * 2.2, 0, 0.999)  # inflated but monotone in true_p
     return y, raw
 
 
@@ -162,8 +166,7 @@ def woe_frame():
     noise = rng.choice(list("abcd"), size=n)
     p = np.where(strong == "risky", 0.4, 0.05)
     y = (rng.uniform(size=n) < p).astype(int)
-    return pd.DataFrame({"strong": strong, "noise": noise,
-                         "num": rng.normal(size=n)}), y
+    return pd.DataFrame({"strong": strong, "noise": noise, "num": rng.normal(size=n)}), y
 
 
 def test_information_value_separates_signal_from_noise(woe_frame):
@@ -231,6 +234,7 @@ def test_logistic_challenger_learns_the_signal(woe_frame):
     W = enc.transform(X)
     model = woe.fit_logistic_scorecard(W[["strong"]], y)
     from sklearn.metrics import roc_auc_score
+
     assert roc_auc_score(y, model.predict_proba(W[["strong"]])[:, 1]) > 0.7
 
 
