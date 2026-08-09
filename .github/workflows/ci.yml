@@ -91,6 +91,15 @@ jobs:
             --output /tmp/scores_ci.csv \
             --cutoff-score 555
 
+      - name: Monitoring - build baseline and check a period
+        working-directory: modular_code/modular_code
+        # Exercises the monitoring path end to end. `check` exits 1 on an ALERT,
+        # so a genuine drift in the committed dataset would fail the build.
+        run: |
+          python monitor.py baseline --artifacts output_v2_ci --up-to 202204
+          python monitor.py check --artifacts output_v2_ci --period 202205
+          python monitor.py check --artifacts output_v2_ci --period 202205 --no-labels
+
       - name: Confirm no personal data is about to be committed
         run: |
           if git ls-files | grep -Ei '(^|/)(scores|.*_scores)[^/]*\.csv$'; then

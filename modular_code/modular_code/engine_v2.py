@@ -38,6 +38,7 @@ from ml_pipeline.calibration import Calibrator, calibration_report
 from ml_pipeline.config import Config
 from ml_pipeline.data_contract import validate_raw_data
 from ml_pipeline.logging_utils import get_logger, setup_logging
+from ml_pipeline.monitoring import build_baseline_from_raw, save_baseline
 from ml_pipeline.validation import drop_leaked_users, expanding_window_folds, summarise_folds
 
 logger = get_logger("engine_v2")
@@ -330,6 +331,28 @@ def main(argv=None):
     ev.approval_curve(hold_out.label, cal_ho).to_csv(
         cfg.path("approval_curve_hold_out.csv"), index=False
     )
+
+    # ---- monitoring baseline --------------------------------------------
+    # Produced with the model so the two cannot drift apart. Built from the raw
+    # tuning frame, before clean_placeholders, because placeholder rates must be
+    # measured on data as received - see build_baseline_from_raw.
+    raw_tuning = utils.process_data(cfg.data_path, [])
+    processing.create_label(raw_tuning, cfg.label_dpd, cfg.label_months)
+    raw_tuning = raw_tuning[raw_tuning.yearmo <= cfg.val_yearmo].reset_index(drop=True)
+    baseline = build_baseline_from_raw(
+        raw_tuning,
+        model,
+        encoder,
+        calibrator,
+        features,
+        labels=raw_tuning["label"],
+        model_version=os.path.basename(os.path.abspath(cfg.output_dir)),
+    )
+    baseline["window"] = {
+        "up_to": int(cfg.val_yearmo),
+        "months": sorted(int(m) for m in raw_tuning.yearmo.unique()),
+    }
+    save_baseline(baseline, cfg.path("monitoring_baseline.json"))
 
     manifest = {
         "created_utc": datetime.datetime.now(datetime.timezone.utc)

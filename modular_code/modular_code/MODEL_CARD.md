@@ -203,20 +203,49 @@ weak model looks like in points — cutoffs are sensitive to small score moves.
 
 ---
 
-## 8. Monitoring plan (required before deployment)
+## 8. Monitoring
 
-| Check | Frequency | Trigger |
-|---|---|---|
-| Score PSI vs the training distribution | Monthly | > 0.10 investigate, > 0.25 escalate |
-| Feature-level PSI | Monthly | > 0.25 on any feature in use |
-| Observed vs predicted default rate | Monthly, once the 3-EMI window matures | Ratio outside 0.8–1.25 |
-| Discrimination (AUC/Gini/KS) on matured cohorts | Quarterly | Gini below 0.20 |
-| Placeholder rate in `industry` / `work_experience` | Monthly | Any change in the encoding convention upstream |
-| Approval-rate and bad-rate by decile | Monthly | Material drift from the hold-out decile table |
+**Implemented** in `ml_pipeline/monitoring.py`, driven by `monitor.py`.
 
-Helpers exist in `ml_pipeline/evaluation.py`
-(`population_stability_index`, `decile_table`, `approval_curve`); the scheduled
-job that runs them does not.
+```bash
+python monitor.py baseline --up-to 202204        # once, with the model
+python monitor.py check --period 202205          # every month
+python monitor.py check --period 202206 --no-labels   # cohort not yet matured
+```
+
+`engine_v2.py` writes `monitoring_baseline.json` alongside the model, so the two
+cannot drift apart. `check` exits 1 on any ALERT, so it can be scheduled and
+alert on its own.
+
+| Check | Availability | Trigger | Status |
+|---|---|---|---|
+| Score PSI vs training | Immediate | > 0.10 warn, > 0.25 alert | implemented |
+| Feature-level PSI (per feature) | Immediate | > 0.10 warn, > 0.25 alert | implemented |
+| Score band volume shift | Immediate | PSI > 0.25 | implemented |
+| Mean PD shift | Immediate | ratio outside 0.8–1.25 | implemented |
+| Placeholder-rate change | Immediate | share moves > 5pp | implemented |
+| Observed vs predicted default rate | After 3 EMIs | ratio outside 0.80–1.25 | implemented |
+| Discrimination (AUC/Gini/KS) | After 3 EMIs | Gini below 0.20 | implemented |
+| Decile bad-rate drift | After 3 EMIs | any decile moves > 5pp | implemented |
+
+**The maturity split is the point.** A first-payment-default label needs three
+EMIs, so a freshly scored cohort has no outcome to check against. The input and
+score checks run immediately; the outcome checks report `SKIPPED` with the
+reason rather than being quietly omitted, so a monthly report can never look
+green because half of it silently did not run.
+
+**Why the placeholder check exists.** If the upstream export changes how it
+writes "not captured", the encoder starts seeing an unfamiliar category and maps
+it to the prior — a silent degradation that PSI on the *encoded* value cannot
+see, because the encoded value barely moves. This check watches the raw field
+instead. It is finding H1 recurring, and it is tested by injecting exactly that
+change.
+
+Baseline (202201–202204, 115,000 applications): mean PD 0.0945, observed default
+rate 0.0944, Gini 0.2819.
+
+Latest run — 202205, n=28,727: **all checks OK.** Score PSI 0.0001, calibration
+ratio 1.042, Gini 0.2745, largest decile bad-rate drift 0.0097.
 
 **Retraining.** No cadence set. With five months of data and an unresolved
 provenance question, retraining should not be automated yet.

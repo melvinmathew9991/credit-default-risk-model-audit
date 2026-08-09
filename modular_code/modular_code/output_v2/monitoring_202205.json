@@ -1,0 +1,135 @@
+{
+  "created_utc": "2026-08-09T14:39:47+00:00",
+  "period": "202205",
+  "n_rows": 28727,
+  "labels_available": true,
+  "overall_status": "OK",
+  "checks": [
+    {
+      "check": "score_psi",
+      "status": "OK",
+      "value": 0.00011690453393150784,
+      "threshold": 0.25,
+      "message": "score distribution is stable"
+    },
+    {
+      "check": "mean_pd_shift",
+      "status": "OK",
+      "value": 1.0005091144574425,
+      "threshold": 1.25,
+      "message": "mean PD 0.0946 against a baseline of 0.0945"
+    },
+    {
+      "check": "feature_psi::employment_type",
+      "status": "OK",
+      "value": 0.0002541625643264,
+      "threshold": 0.25,
+      "message": "stable"
+    },
+    {
+      "check": "feature_psi::tier_of_employment",
+      "status": "OK",
+      "value": 0.0004944079310991211,
+      "threshold": 0.25,
+      "message": "stable"
+    },
+    {
+      "check": "feature_psi::industry",
+      "status": "OK",
+      "value": 0.0010748100168811823,
+      "threshold": 0.25,
+      "message": "stable"
+    },
+    {
+      "check": "feature_psi::role",
+      "status": "OK",
+      "value": 0.0018849032094387173,
+      "threshold": 0.25,
+      "message": "stable"
+    },
+    {
+      "check": "feature_psi::work_experience",
+      "status": "OK",
+      "value": 0.0003262985307573199,
+      "threshold": 0.25,
+      "message": "stable"
+    },
+    {
+      "check": "feature_psi::total_income",
+      "status": "OK",
+      "value": 0.0005310601000232277,
+      "threshold": 0.25,
+      "message": "stable"
+    },
+    {
+      "check": "feature_psi::dependents",
+      "status": "OK",
+      "value": 9.811042170722466e-05,
+      "threshold": 0.25,
+      "message": "stable"
+    },
+    {
+      "check": "feature_psi::home_type",
+      "status": "OK",
+      "value": 8.647515008385686e-05,
+      "threshold": 0.25,
+      "message": "stable"
+    },
+    {
+      "check": "feature_psi::has_social_profile",
+      "status": "OK",
+      "value": 0.0002348446328343724,
+      "threshold": 0.25,
+      "message": "stable"
+    },
+    {
+      "check": "feature_psi::is_verified",
+      "status": "OK",
+      "value": 0.00023602558430173688,
+      "threshold": 0.25,
+      "message": "stable"
+    },
+    {
+      "check": "feature_psi::delinq_2yrs",
+      "status": "OK",
+      "value": 1.1376876567275024e-05,
+      "threshold": 0.25,
+      "message": "stable"
+    },
+    {
+      "check": "feature_psi::number_of_loans",
+      "status": "OK",
+      "value": 0.0,
+      "threshold": 0.25,
+      "message": "stable"
+    },
+    {
+      "check": "score_band_volume_psi",
+      "status": "OK",
+      "value": 0.08468115541061087,
+      "threshold": 0.25,
+      "message": "share of applicants per score band against an even baseline split"
+    },
+    {
+      "check": "calibration_ratio",
+      "status": "OK",
+      "value": 1.041585121905013,
+      "threshold": 1.25,
+      "message": "predicted 0.0946 against observed 0.0908"
+    },
+    {
+      "check": "discrimination_gini",
+      "status": "OK",
+      "value": 0.2744609033430876,
+      "threshold": 0.2,
+      "message": "AUC 0.6372, KS 0.1959"
+    },
+    {
+      "check": "decile_bad_rate_drift",
+      "status": "OK",
+      "value": 0.009738192163924991,
+      "threshold": 0.05,
+      "message": "largest absolute change in any decile's bad rate against baseline"
+    }
+  ]
+}

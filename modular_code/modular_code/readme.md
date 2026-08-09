@@ -67,6 +67,7 @@ ml_pipeline/              importable pipeline stages
   calibration.py          isotonic / Platt calibration
   woe.py                  weight of evidence, information value, scorecard
   scorecard.py            score points, adverse action reason codes, cutoffs
+  monitoring.py           baseline snapshot and monthly drift checks
   evaluation.py           discrimination, calibration, stability, decile views
 analysis/                 independent validation, not part of training
   diagnostics.py          leakage / encoder / feature-validity checks
@@ -76,6 +77,7 @@ analysis/                 independent validation, not part of training
   cutoff_policy.py        approval rate vs book bad rate, on the hold-out
 tests/                    205 regression tests
 validate_data.py          data contract gate (exit 1 on failure)
+monitor.py                monitoring baseline and monthly checks (exit 1 on alert)
 output/                   artefacts from engine.py
 output_v2/                artefacts from engine_v2.py
 engine.py                 training entry point (original model)
@@ -116,6 +118,18 @@ leakage screen. Both training entry points run it and record the result; use
 
 On the shipped dataset it reports 2 errors and 7 warnings, and independently
 rediscovers findings H1, H2, M7, M10 and C1.
+
+#### Monitoring
+
+```bash
+python monitor.py baseline --up-to 202204        # once, with the model
+python monitor.py check --period 202205          # every month
+python monitor.py check --period 202206 --no-labels   # cohort not yet matured
+```
+
+`check` exits 1 on any ALERT so it can be scheduled. Input and score checks run
+immediately; outcome checks need three EMIs to mature and report `SKIPPED` until
+then rather than being silently omitted. See `MODEL_CARD.md` §8.
 
 #### Scoring with the governed model
 

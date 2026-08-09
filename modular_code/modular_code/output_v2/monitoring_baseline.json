@@ -1,0 +1,409 @@
+{
+  "created_utc": "2026-08-09T14:39:44+00:00",
+  "model_version": "output_v2",
+  "n_rows": 115000,
+  "features": [
+    "employment_type",
+    "tier_of_employment",
+    "industry",
+    "role",
+    "work_experience",
+    "total_income",
+    "dependents",
+    "home_type",
+    "has_social_profile",
+    "is_verified",
+    "delinq_2yrs",
+    "number_of_loans",
+    "delinq_2yrs_ratio"
+  ],
+  "score": {
+    "edges": [
+      0.0,
+      0.044134288947566956,
+      0.05902192242833053,
+      0.0741106719367589,
+      0.07611759967780911,
+      0.08608179419525067,
+      0.12077870480731029,
+      0.12637362637362634,
+      0.16326530612244897,
+      1.0
+    ],
+    "shares": [
+      0.06469565217391304,
+      0.10264347826086956,
+      0.11171304347826087,
+      0.11875652173913044,
+      0.09728695652173913,
+      0.20196521739130435,
+      0.09731304347826086,
+      0.10203478260869565,
+      0.10359130434782608
+    ],
+    "mean_pd": 0.09454912698055959
+  },
+  "feature_spec": {
+    "employment_type": {
+      "kind": "categorical",
+      "categories": [
+        "__MISSING__",
+        "Salaried",
+        "Self - Employeed"
+      ],
+      "shares": [
+        0.5902869565217391,
+        0.3324695652173913,
+        0.07724347826086957,
+        0.0
+      ],
+      "null_rate": 0.5902869565217391,
+      "placeholder_rate": 0.0
+    },
+    "tier_of_employment": {
+      "kind": "categorical",
+      "categories": [
+        "__MISSING__",
+        "B",
+        "C",
+        "A",
+        "D",
+        "E",
+        "F",
+        "G"
+      ],
+      "shares": [
+        0.5902869565217391,
+        0.12796521739130434,
+        0.10417391304347826,
+        0.07829565217391304,
+        0.06073913043478261,
+        0.027104347826086957,
+        0.009478260869565217,
+        0.001956521739130435,
+        0.0
+      ],
+      "null_rate": 0.5902869565217391,
+      "placeholder_rate": 0.0
+    },
+    "industry": {
+      "kind": "categorical",
+      "categories": [
+        "0",
+        "0.0",
+        "mLVIVxoGY7TUDJ1FyFoSIZi1SFcaBmO01AydRchaEiGYtUhXGgZjtNQMnUXIWhIhmLVIVxoGY7TUDJ1FyFoSIbOy82w5K5LALfp4MHskDUE=",
+        "mLVIVxoGY7TUDJ1FyFoSIZi1SFcaBmO01AydRchaEiGYtUhXGgZjtNQMnUXIWhIhmLVIVxoGY7TUDJ1FyFoSIVf4E/iI7qK+Lfl5hxoWW2A=",
+        "mLVIVxoGY7TUDJ1FyFoSIZi1SFcaBmO01AydRchaEiGYtUhXGgZjtNQMnUXIWhIhmLVIVxoGY7TUDJ1FyFoSIaUIfpgwbYh438CvSsT5QB8=",
+        "mLVIVxoGY7TUDJ1FyFoSIZi1SFcaBmO01AydRchaEiGYtUhXGgZjtNQMnUXIWhIhmLVIVxoGY7TUDJ1FyFoSIUGp9a+9oBSLvyI5Jdz9fNg=",
+        "mLVIVxoGY7TUDJ1FyFoSIZi1SFcaBmO01AydRchaEiGYtUhXGgZjtNQMnUXIWhIhmLVIVxoGY7TUDJ1FyFoSIS7jap0hM5abNdcL6dk7Ifw=",
+        "mLVIVxoGY7TUDJ1FyFoSIZi1SFcaBmO01AydRchaEiGYtUhXGgZjtNQMnUXIWhIhmLVIVxoGY7TUDJ1FyFoSIb4ADj/ykkhgM886TEQ8yrI=",
+        "mLVIVxoGY7TUDJ1FyFoSIZi1SFcaBmO01AydRchaEiGYtUhXGgZjtNQMnUXIWhIhmLVIVxoGY7TUDJ1FyFoSIZTPtauEI0SkDbn8tDAkC4Y=",
+        "mLVIVxoGY7TUDJ1FyFoSIZi1SFcaBmO01AydRchaEiGYtUhXGgZjtNQMnUXIWhIhmLVIVxoGY7TUDJ1FyFoSIa6KOvl8Xp6F2JH3Vt47kH0=",
+        "mLVIVxoGY7TUDJ1FyFoSIZi1SFcaBmO01AydRchaEiGYtUhXGgZjtNQMnUXIWhIhmLVIVxoGY7TUDJ1FyFoSIfeSCTDWhw2hS0GDfQEUVwM=",
+        "mLVIVxoGY7TUDJ1FyFoSIZi1SFcaBmO01AydRchaEiGYtUhXGgZjtNQMnUXIWhIhmLVIVxoGY7TUDJ1FyFoSISzmgfFzT+qYrtqTHkJFqpA=",
+        "mLVIVxoGY7TUDJ1FyFoSIZi1SFcaBmO01AydRchaEiGYtUhXGgZjtNQMnUXIWhIhmLVIVxoGY7TUDJ1FyFoSIV56G3kjZxQ0yMeb3IU2UKE=",
+        "mLVIVxoGY7TUDJ1FyFoSIZi1SFcaBmO01AydRchaEiGYtUhXGgZjtNQMnUXIWhIhmLVIVxoGY7TUDJ1FyFoSIdTatUCE3zh3wqyi+7XWETU=",
+        "mLVIVxoGY7TUDJ1FyFoSIZi1SFcaBmO01AydRchaEiGYtUhXGgZjtNQMnUXIWhIhEUQ+DbYmmzO9kJFZAefKF0LoyJF1n4YxcxzJOmCe0Cs=",
+        "mLVIVxoGY7TUDJ1FyFoSIZi1SFcaBmO01AydRchaEiGYtUhXGgZjtNQMnUXIWhIhmLVIVxoGY7TUDJ1FyFoSITp06YElUTQE4IMfpNNR7OM=",
+        "mLVIVxoGY7TUDJ1FyFoSIZi1SFcaBmO01AydRchaEiGYtUhXGgZjtNQMnUXIWhIhmLVIVxoGY7TUDJ1FyFoSIT3x0YH1KQ3dcQ7bIwp8Q2Q=",
+        "mLVIVxoGY7TUDJ1FyFoSIZi1SFcaBmO01AydRchaEiGYtUhXGgZjtNQMnUXIWhIhmLVIVxoGY7TUDJ1FyFoSIZugU10mHpxvDM8Mkq/9JaY=",
+        "mLVIVxoGY7TUDJ1FyFoSIZi1SFcaBmO01AydRchaEiGYtUhXGgZjtNQMnUXIWhIhmLVIVxoGY7TUDJ1FyFoSIaRr3E4aex+4Q2JdTmjOZ70=",
+        "mLVIVxoGY7TUDJ1FyFoSIZi1SFcaBmO01AydRchaEiGYtUhXGgZjtNQMnUXIWhIhmLVIVxoGY7TUDJ1FyFoSIQpx+SDrrpaneOgNw5p6+Ak="
+      ],
+      "shares": [
+        0.6106956521739131,
+        0.2286521739130435,
+        0.00044347826086956523,
+        0.00042608695652173915,
+        0.000391304347826087,
+        0.0003391304347826087,
+        0.0003043478260869565,
+        0.0002869565217391304,
+        0.0002695652173913043,
+        0.00023478260869565218,
+        0.00023478260869565218,
+        0.00022608695652173914,
+        0.0002173913043478261,
+        0.0002173913043478261,
+        0.00020869565217391305,
+        0.00020869565217391305,
+        0.00019130434782608697,
+        0.00019130434782608697,
+        0.00019130434782608697,
+        0.00017391304347826088,
+        0.15589565217391288
+      ],
+      "null_rate": 2.608695652173913e-05,
+      "placeholder_rate": 0.8393697226884179
+    },
+    "role": {
+      "kind": "categorical",
+      "categories": [
+        "KHMbckjadbckIFGCASEWdkcndwkcnCCM",
+        "KHMbckjadbckIFGNYSEWdkcndwkcnCCM",
+        "KHMbckjadbckIFGTXSEWdkcndwkcnCCM",
+        "KHMbckjadbckIFGFLSEWdkcndwkcnCCM",
+        "KHMbckjadbckIFGILSEWdkcndwkcnCCM",
+        "KHMbckjadbckIFGNJSEWdkcndwkcnCCM",
+        "KHMbckjadbckIFGPASEWdkcndwkcnCCM",
+        "KHMbckjadbckIFGOHSEWdkcndwkcnCCM",
+        "KHMbckjadbckIFGGASEWdkcndwkcnCCM",
+        "KHMbckjadbckIFGVASEWdkcndwkcnCCM",
+        "KHMbckjadbckIFGNCSEWdkcndwkcnCCM",
+        "KHMbckjadbckIFGMISEWdkcndwkcnCCM",
+        "KHMbckjadbckIFGMASEWdkcndwkcnCCM",
+        "KHMbckjadbckIFGMDSEWdkcndwkcnCCM",
+        "KHMbckjadbckIFGAZSEWdkcndwkcnCCM",
+        "KHMbckjadbckIFGWASEWdkcndwkcnCCM",
+        "KHMbckjadbckIFGCOSEWdkcndwkcnCCM",
+        "KHMbckjadbckIFGMNSEWdkcndwkcnCCM",
+        "KHMbckjadbckIFGMOSEWdkcndwkcnCCM",
+        "KHMbckjadbckIFGCTSEWdkcndwkcnCCM"
+      ],
+      "shares": [
+        0.15536521739130435,
+        0.08852173913043478,
+        0.07755652173913044,
+        0.07063478260869566,
+        0.03957391304347826,
+        0.038808695652173916,
+        0.0348,
+        0.03322608695652174,
+        0.03178260869565217,
+        0.030043478260869564,
+        0.028,
+        0.024982608695652175,
+        0.02493913043478261,
+        0.023069565217391303,
+        0.023008695652173915,
+        0.022382608695652173,
+        0.01926086956521739,
+        0.017443478260869564,
+        0.01616521739130435,
+        0.015304347826086957,
+        0.1851304347826085
+      ],
+      "null_rate": 0.0,
+      "placeholder_rate": 0.0
+    },
+    "work_experience": {
+      "kind": "categorical",
+      "categories": [
+        "0",
+        "0.0",
+        "5-10",
+        "10+",
+        "1-2",
+        "2-3",
+        "<1",
+        "3-5",
+        "__MISSING__"
+      ],
+      "shares": [
+        0.6106956521739131,
+        0.2286521739130435,
+        0.06304347826086956,
+        0.049478260869565215,
+        0.01391304347826087,
+        0.011939130434782608,
+        0.011382608695652174,
+        0.010869565217391304,
+        2.608695652173913e-05,
+        0.0
+      ],
+      "null_rate": 2.608695652173913e-05,
+      "placeholder_rate": 0.8393697226884179
+    },
+    "total_income": {
+      "kind": "numeric",
+      "edges": [
+        4800.0,
+        33000.0,
+        40000.0,
+        48000.0,
+        55000.0,
+        61500.0,
+        70000.0,
+        80000.0,
+        95000.0,
+        120000.0,
+        7141778.0
+      ],
+      "shares": [
+        0.09832173913043478,
+        0.07491304347826087,
+        0.12159130434782608,
+        0.10342608695652174,
+        0.10168695652173913,
+        0.08221739130434783,
+        0.10094782608695652,
+        0.11588695652173914,
+        0.09563478260869565,
+        0.10537391304347826
+      ],
+      "null_rate": 0.0,
+      "placeholder_rate": 0.0
+    },
+    "dependents": {
+      "kind": "numeric",
+      "edges": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "shares": [
+        0.1990782608695652,
+        0.20005217391304347,
+        0.20175652173913045,
+        0.3991130434782609
+      ],
+      "null_rate": 0.0,
+      "placeholder_rate": 0.1990782608695652
+    },
+    "home_type": {
+      "kind": "categorical",
+      "categories": [
+        "mortgage",
+        "rent",
+        "own",
+        "other",
+        "none"
+      ],
+      "shares": [
+        0.48709565217391304,
+        0.42101739130434784,
+        0.09125217391304348,
+        0.0003304347826086957,
+        0.0003043478260869565,
+        0.0
+      ],
+      "null_rate": 0.0,
+      "placeholder_rate": 0.0003043478260869565
+    },
+    "has_social_profile": {
+      "kind": "categorical",
+      "categories": [
+        "__MISSING__",
+        "No",
+        "Yes"
+      ],
+      "shares": [
+        0.3341391304347826,
+        0.33371304347826086,
+        0.33214782608695653,
+        0.0
+      ],
+      "null_rate": 0.3341391304347826,
+      "placeholder_rate": 0.0
+    },
+    "is_verified": {
+      "kind": "categorical",
+      "categories": [
+        "Verified",
+        "Source Verified",
+        "Not Verified",
+        "__MISSING__"
+      ],
+      "shares": [
+        0.25102608695652173,
+        0.2503565217391304,
+        0.2502521739130435,
+        0.24836521739130435,
+        1.1102230246251565e-16
+      ],
+      "null_rate": 0.24836521739130435,
+      "placeholder_rate": 0.0
+    },
+    "delinq_2yrs": {
+      "kind": "numeric",
+      "edges": [
+        0.0,
+        1.0,
+        22.0
+      ],
+      "shares": [
+        0.8253652173913043,
+        0.17463478260869567
+      ],
+      "null_rate": 0.0,
+      "placeholder_rate": 0.8253652173913043
+    },
+    "number_of_loans": {
+      "kind": "numeric",
+      "edges": [
+        0.0,
+        5.0
+      ],
+      "shares": [
+        1.0
+      ],
+      "null_rate": 0.0,
+      "placeholder_rate": 0.9959652173913044
+    }
+  },
+  "derived_features_not_directly_monitored": [
+    "delinq_2yrs_ratio"
+  ],
+  "observed_default_rate": 0.09443478260869566,
+  "deciles": {
+    "bad_rate": [
+      0.2028695652173913,
+      0.13608695652173913,
+      0.1111304347826087,
+      0.09556521739130434,
+      0.09052173913043478,
+      0.08434782608695653,
+      0.0751304347826087,
+      0.06478260869565218,
+      0.05234782608695652,
+      0.03156521739130435
+    ],
+    "min_score": [
+      0.16326530612244897,
+      0.12637362637362634,
+      0.12077870480731029,
+      0.08608179419525067,
+      0.08608179419525067,
+      0.07611759967780911,
+      0.0741106719367589,
+      0.05902192242833053,
+      0.044134288947566956,
+      0.0
+    ],
+    "max_score": [
+      1.0,
+      0.16326530612244897,
+      0.12637362637362634,
+      0.12077870480731029,
+      0.08608179419525067,
+      0.08608179419525067,
+      0.07611759967780911,
+      0.0741106719367589,
+      0.05902192242833053,
+      0.044134288947566956
+    ]
+  },
+  "discrimination": {
+    "n": 115000,
+    "n_default": 10860,
+    "default_rate": 0.09443478260869566,
+    "roc_auc": 0.6409613435625154,
+    "gini": 0.2819226871250309,
+    "ks": 0.19534993444509635,
+    "ks_threshold": 0.09899458623356536,
+    "pr_auc_class1": 0.16785949129328612,
+    "avg_precision_class1": 0.15972585614104728,
+    "pr_auc_class0": 0.940676415481899
+  },
+  "window": {
+    "up_to": 202204,
+    "months": [
+      202201,
+      202202,
+      202203,
+      202204
+    ]
+  }
+}
