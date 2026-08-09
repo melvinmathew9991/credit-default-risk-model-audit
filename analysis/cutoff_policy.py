@@ -61,6 +61,25 @@ def main():
     setup_logging("ERROR")
     cfg = Config()
 
+    # Fail with something actionable rather than a raw LightGBM error about a
+    # file it could not open.
+    missing = [
+        n
+        for n in (
+            "model_v2.txt",
+            "target_encoder_v2.pkl",
+            "calibrator_v2.pkl",
+            "feature_columns_v2.json",
+        )
+        if not os.path.exists(os.path.join(args.artifacts, n))
+    ]
+    if missing:
+        print(
+            f"missing v2 artefacts in {args.artifacts!r}: {missing}\n"
+            f"run `python engine_v2.py --output-dir {args.artifacts}` first."
+        )
+        return 2
+
     model = lgb.Booster(model_file=os.path.join(args.artifacts, "model_v2.txt"))
     with open(os.path.join(args.artifacts, "target_encoder_v2.pkl"), "rb") as f:
         encoder = pickle.load(f)
@@ -144,7 +163,8 @@ def main():
     out = os.path.join(args.artifacts, "cutoff_policy.csv")
     pol.to_csv(out, index=False)
     print(f"\nWritten: {out}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

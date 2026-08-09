@@ -13,6 +13,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from ml_pipeline import processing, utils  # noqa: E402
+from ml_pipeline.config import resolve_data_path  # noqa: E402
 
 warnings.filterwarnings("ignore")
 
@@ -29,7 +30,7 @@ ID_COLS = [
     "label",
 ]
 
-df = utils.process_data("data/credit_risk_data.csv", ["gender"])
+df = utils.process_data(resolve_data_path(), ["gender"])
 train, val, hold_out = utils.data_split(df)
 processing.create_label(train, dpd=60, months=3)
 processing.derived_features(train)

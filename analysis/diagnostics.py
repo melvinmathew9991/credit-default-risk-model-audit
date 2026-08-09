@@ -26,12 +26,14 @@ from sklearn.metrics import roc_auc_score
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from ml_pipeline import processing, utils  # noqa: E402
+from ml_pipeline.config import resolve_data_path  # noqa: E402
 
 warnings.filterwarnings("ignore")
 pd.set_option("display.width", 200)
 pd.set_option("display.max_columns", 50)
 
-DATA = "data/credit_risk_data.csv"
+#: Full dataset if present, otherwise the committed sample. See docs/DATA.md.
+DATA = resolve_data_path()
 ID_COLS = [
     "User_id",
     "emi_1_dpd",

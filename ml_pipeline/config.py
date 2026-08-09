@@ -17,11 +17,45 @@ from dataclasses import asdict, dataclass, field, fields
 
 ENV_PREFIX = "CRD_"
 
+#: The full dataset is not distributed with the repository - see docs/DATA.md.
+#: A stratified sample is committed instead, and everything falls back to it.
+FULL_DATA = "data/credit_risk_data.csv"
+SAMPLE_DATA = "data/credit_risk_data_sample.csv"
+
+
+def resolve_data_path(base=None):
+    """The dataset to use: the full file if present, otherwise the sample.
+
+    Single source of truth for this decision. Entry points, analysis scripts and
+    the test suite all route through here, so a clone that has only the sample
+    behaves identically to one that also has the full file - just on less data.
+
+    Parameters
+    ----------
+    base : str, optional
+        Directory to resolve against. Defaults to the current directory, which
+        is the repository root for every documented invocation.
+
+    Returns
+    -------
+    str
+        Path to whichever dataset exists. Falls back to the full path when
+        neither is present, so the caller gets a FileNotFoundError naming the
+        file it actually wanted.
+    """
+    join = (lambda p: os.path.join(base, p)) if base else (lambda p: p)
+    for candidate in (FULL_DATA, SAMPLE_DATA):
+        if os.path.exists(join(candidate)):
+            return join(candidate)
+    return join(FULL_DATA)
+
 
 @dataclass
 class Config:
     # ---- data ----------------------------------------------------------
-    data_path: str = "data/credit_risk_data.csv"
+    # Resolved rather than fixed, so a clone with only the sample works without
+    # any flag. An explicit --data-path or CRD_DATA_PATH still wins.
+    data_path: str = field(default_factory=resolve_data_path)
     output_dir: str = "output"
     drop_columns: list = field(default_factory=lambda: ["gender"])
 
