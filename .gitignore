@@ -24,7 +24,10 @@ notebooks/notebooks/credit_risk_data.csv
 **/output*/**/*.pkl
 **/output*/**/*.log
 **/output*/**/model*.txt
-**/output*/**/scores.csv
+# Scored output is keyed by User_id and therefore carries personal data.
+# It must never be committed. Glob covers scores.csv, scores_v2.csv, etc.
+**/output*/**/scores*.csv
+**/*_scores.csv
 **/output*/plots/
 **/output_smoke/
 **/output_e2e/

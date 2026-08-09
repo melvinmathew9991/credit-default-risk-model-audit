@@ -65,19 +65,22 @@ ml_pipeline/              importable pipeline stages
   validation.py           walk-forward folds and customer dedup
   calibration.py          isotonic / Platt calibration
   woe.py                  weight of evidence, information value, scorecard
+  scorecard.py            score points, adverse action reason codes, cutoffs
   evaluation.py           discrimination, calibration, stability, decile views
 analysis/                 independent validation, not part of training
   diagnostics.py          leakage / encoder / feature-validity checks
   encoder_check.py        target-encoder smoothing behaviour
   encoder_sweep.py        how much categorical signal is recoverable
   governance_cost.py      what each governance decision cost, step by step
-tests/                    129 regression tests
+  cutoff_policy.py        approval rate vs book bad rate, on the hold-out
+tests/                    164 regression tests
 output/                   artefacts from engine.py
 output_v2/                artefacts from engine_v2.py
 engine.py                 training entry point (original model)
 engine_v2.py              training entry point (remediated model)
 evaluate.py               evaluation entry point
-predict.py                batch scoring entry point
+predict.py                batch scoring entry point (v1)
+predict_v2.py             batch scoring entry point (v2, calibrated + reasons)
 requirements.txt
 readme.md
 MODEL_REVIEW.md           validation findings
@@ -94,7 +97,23 @@ MODEL_CARD.md             model card for v2
    tables, approval curve, feature importance and plots to `output/`.
 4. `python analysis/diagnostics.py` — runs the validation checks.
 5. `python predict.py --input <raw.csv> --output output/scores.csv` — batch scoring.
-6. `python -m pytest tests -q` — 59 regression tests.
+6. `python -m pytest tests -q` — 164 regression tests.
+
+#### Scoring with the governed model
+
+```bash
+python engine_v2.py                                  # train
+python analysis/cutoff_policy.py --target-bad-rate 0.06   # choose a cutoff
+python predict_v2.py --input applications.csv --cutoff-score 555
+```
+
+`predict_v2.py` returns a calibrated probability of default, a score in points,
+an approve/decline flag, and — for declines — up to four principal reasons.
+Calibration is applied unconditionally and cannot be switched off: the raw
+booster understates risk by 41%, so its output is not a probability.
+
+The scores file is keyed by `User_id` and therefore carries personal data; see
+`DATA.md`.
 
 #### Configuration
 

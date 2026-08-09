@@ -136,6 +136,27 @@ understates risk by 41% — so `predict` must always apply the calibrator.
 **Risk separation.** Top decile: 19.4% bad rate vs 8.7% base (lift 2.2),
 capturing 22.3% of all defaults.
 
+### Decisioning
+
+Scores are expressed in points: `score = offset + factor · ln((1−PD)/PD)`, with
+PDO 20 and 600 points at 50:1 good:bad odds. Higher score = lower risk.
+
+Cutoff policy on the hold-out (`analysis/cutoff_policy.py`). At a 6% book bad
+rate appetite:
+
+| | |
+|---|---|
+| Cutoff | **555 points** (PD 0.0861) |
+| Approval rate | 55% |
+| Book bad rate | 5.66%, against 8.71% unscreened — a **35% reduction** |
+| Defaults avoided | 1,489 of 2,318 (**64.2%**) |
+| Good customers declined | 10,484 |
+
+That last row is the cost of the cutoff and belongs in the decision: at Gini
+0.29 the model turns away a large number of customers who would have paid. The
+score range is also compressed (466–587 across the hold-out), which is what a
+weak model looks like in points — cutoffs are sensitive to small score moves.
+
 ---
 
 ## 6. Limitations
@@ -164,10 +185,14 @@ capturing 22.3% of all defaults.
 
 ## 7. Ethical and regulatory considerations
 
-- **Adverse action reason codes are not implemented.** Where a declined
-  applicant must be told the principal reasons (ECOA/FCRA in the US, and under
-  fair-practice expectations elsewhere), this model cannot currently supply
-  them. This must be built before any decline decision uses the score.
+- **Adverse action reason codes are implemented** (`ml_pipeline/scorecard.py`,
+  surfaced by `predict_v2.py`). For each declined applicant the model returns up
+  to four principal reasons, derived from the class-1 SHAP decomposition of its
+  log-odds output and expressed in applicant-facing language. Every model
+  feature has mapped reason text — a test enforces this, because a decline
+  explained as "other information" is not an acceptable reason. The wording
+  refers only to the applicant's own record, never to a group.
+  **The reason text still requires legal review before use in a live notice.**
 - **Alternative data.** `has_social_profile` and `is_verified` are RESTRICTED:
   social-media presence can proxy for age and national origin. They contribute
   essentially nothing (IV 0.0003 and 0.0002) and should simply be dropped.
@@ -208,6 +233,10 @@ provenance question, retraining should not be automated yet.
 | Model risk committee | | | |
 
 **Recommendation: do not deploy.** Resolve the C1 observation-timing question
-and the H1 placeholder encoding at source, obtain bureau data, and implement
-adverse action reason codes. Re-baseline against **Gini 0.2914** on the 202205
-hold-out.
+and the H1 placeholder encoding at source, obtain bureau data, get the reason
+code wording through legal review, and stand up the monitoring in §8.
+Re-baseline against **Gini 0.2914** on the 202205 hold-out.
+
+The model is now *decision-capable* — it produces calibrated PDs, score points,
+a defensible cutoff and explainable declines. It is not *approved*, and the
+limitations in §6 are the reason.
