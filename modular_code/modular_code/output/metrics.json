@@ -1,0 +1,148 @@
+{
+  "n_features": 19,
+  "features": [
+    "total_income",
+    "dependents",
+    "delinq_2yrs",
+    "total_payement",
+    "received_principal",
+    "interest_received",
+    "number_of_loans",
+    "interest_received_ratio",
+    "total_payement_per_loan",
+    "delinq_2yrs_ratio",
+    "employment_type",
+    "tier_of_employment",
+    "industry",
+    "role",
+    "work_experience",
+    "married",
+    "home_type",
+    "has_social_profile",
+    "is_verified"
+  ],
+  "n_trees": 5368,
+  "splits": {
+    "train": {
+      "n": 86250,
+      "n_default": 8051,
+      "default_rate": 0.09334492753623189,
+      "roc_auc": 0.9616517721558594,
+      "gini": 0.9233035443117188,
+      "ks": 0.7872763345338578,
+      "ks_threshold": 0.08781743679700114,
+      "pr_auc_class1": 0.8571143096930443,
+      "avg_precision_class1": 0.8571197716116388,
+      "pr_auc_class0": 0.995230608902364,
+      "brier": 0.031548228414042416,
+      "expected_calibration_error": 0.01566956595171063,
+      "max_calibration_error": 0.12661048104380523,
+      "mean_predicted": 0.08085504849900858,
+      "observed_rate": 0.09334492753623189,
+      "calibration_ratio": 0.8661964890124817
+    },
+    "val": {
+      "n": 28750,
+      "n_default": 2809,
+      "default_rate": 0.09770434782608696,
+      "roc_auc": 0.9517161166542875,
+      "gini": 0.9034322333085749,
+      "ks": 0.7653880044824449,
+      "ks_threshold": 0.10142672882015354,
+      "pr_auc_class1": 0.8436154426459072,
+      "avg_precision_class1": 0.8436309980727477,
+      "pr_auc_class0": 0.9933278105505248,
+      "brier": 0.0342136895539529,
+      "expected_calibration_error": 0.015501122465263275,
+      "max_calibration_error": 0.13008348303977268,
+      "mean_predicted": 0.08260618925963473,
+      "observed_rate": 0.09770434782608696,
+      "calibration_ratio": 0.8454709651885006
+    },
+    "hold_out": {
+      "n": 28727,
+      "n_default": 2609,
+      "default_rate": 0.09082048247293487,
+      "roc_auc": 0.9485600055953858,
+      "gini": 0.8971200111907716,
+      "ks": 0.7490602619576201,
+      "ks_threshold": 0.09036427953601339,
+      "pr_auc_class1": 0.8250930419886743,
+      "avg_precision_class1": 0.8251116809715732,
+      "pr_auc_class0": 0.9935937406524071,
+      "brier": 0.03348709917142457,
+      "expected_calibration_error": 0.013378572684630906,
+      "max_calibration_error": 0.11346163666596554,
+      "mean_predicted": 0.07778863786360883,
+      "observed_rate": 0.09082048247293487,
+      "calibration_ratio": 0.8565098504821353
+    }
+  },
+  "stability": {
+    "psi_train_vs_val": 0.0009994194936919735,
+    "psi_train_vs_hold_out": 0.00136633021420742,
+    "psi_val_vs_hold_out": 0.0012491496731108285
+  },
+  "top_features_by_gain": [
+    {
+      "feature": "received_principal",
+      "split": 13557,
+      "gain": 331667.7660204023,
+      "gain_pct": 36.38771365955961
+    },
+    {
+      "feature": "interest_received_ratio",
+      "split": 11543,
+      "gain": 191493.41264291108,
+      "gain_pct": 21.008998102376662
+    },
+    {
+      "feature": "total_payement",
+      "split": 11531,
+      "gain": 164473.26188617945,
+      "gain_pct": 18.04458126871426
+    },
+    {
+      "feature": "interest_received",
+      "split": 6608,
+      "gain": 70751.68948602676,
+      "gain_pct": 7.7622623652527265
+    },
+    {
+      "feature": "industry",
+      "split": 1851,
+      "gain": 60616.016933918,
+      "gain_pct": 6.650264190095409
+    },
+    {
+      "feature": "total_income",
+      "split": 5409,
+      "gain": 26349.1485979259,
+      "gain_pct": 2.8908002904796457
+    },
+    {
+      "feature": "work_experience",
+      "split": 816,
+      "gain": 19669.292471542954,
+      "gain_pct": 2.1579443517480965
+    },
+    {
+      "feature": "employment_type",
+      "split": 758,
+      "gain": 18391.35129880905,
+      "gain_pct": 2.0177397185841293
+    },
+    {
+      "feature": "tier_of_employment",
+      "split": 2611,
+      "gain": 16130.016791135073,
+      "gain_pct": 1.7696456890043593
+    },
+    {
+      "feature": "delinq_2yrs",
+      "split": 558,
+      "gain": 2738.0647148787975,
+      "gain_pct": 0.3003967374394309
+    }
+  ]
+}

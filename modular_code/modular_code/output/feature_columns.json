@@ -1,0 +1,21 @@
+[
+  "total_income",
+  "dependents",
+  "delinq_2yrs",
+  "total_payement",
+  "received_principal",
+  "interest_received",
+  "number_of_loans",
+  "interest_received_ratio",
+  "total_payement_per_loan",
+  "delinq_2yrs_ratio",
+  "employment_type",
+  "tier_of_employment",
+  "industry",
+  "role",
+  "work_experience",
+  "married",
+  "home_type",
+  "has_social_profile",
+  "is_verified"
+]

@@ -1,0 +1,88 @@
+{
+  "created_utc": "2026-08-09T09:57:19Z",
+  "python": "3.10.11",
+  "versions": {
+    "pandas": "1.3.5",
+    "numpy": "1.22.4",
+    "lightgbm": "3.3.0"
+  },
+  "data_path": "input/credit_risk_data.csv",
+  "data_rows": 143727,
+  "label_definition": {
+    "dpd": 60,
+    "months": 3
+  },
+  "split": {
+    "train": "yearmo <= 202203",
+    "val": "yearmo == 202204",
+    "hold_out": "yearmo == 202205"
+  },
+  "split_rows": {
+    "train": 86250,
+    "val": 28750,
+    "hold_out": 28727
+  },
+  "default_rate": {
+    "train": 0.09334492753623189,
+    "val": 0.09770434782608696,
+    "hold_out": 0.09082048247293487
+  },
+  "seed": 7,
+  "max_evals": 50,
+  "dropped_zero_importance_features": [
+    "pincode"
+  ],
+  "non_feature_columns": [
+    "User_id",
+    "emi_1_dpd",
+    "emi_2_dpd",
+    "emi_3_dpd",
+    "emi_4_dpd",
+    "emi_5_dpd",
+    "emi_6_dpd",
+    "max_dpd",
+    "yearmo",
+    "label"
+  ],
+  "best_params": {
+    "num_leaves": 12,
+    "max_depth": 8,
+    "learning_rate": 0.0132843785134185,
+    "objective": "binary",
+    "metric": "auc",
+    "boosting": "gbdt",
+    "feature_fraction": 0.6808692072046664,
+    "max_bin": 100,
+    "min_data_in_leaf": 625,
+    "min_data_in_bin": 95,
+    "bagging_freq": 20,
+    "random_seed": 2019,
+    "lambda_l1": 7.15717303456788,
+    "lambda_l2": 1.622368053033749,
+    "pos_bagging_fraction": 0.6588077934049784,
+    "neg_bagging_fraction": 0.9732347016237448,
+    "verbose": -1
+  },
+  "best_iteration": 5368,
+  "features": [
+    "total_income",
+    "dependents",
+    "delinq_2yrs",
+    "total_payement",
+    "received_principal",
+    "interest_received",
+    "number_of_loans",
+    "interest_received_ratio",
+    "total_payement_per_loan",
+    "delinq_2yrs_ratio",
+    "employment_type",
+    "tier_of_employment",
+    "industry",
+    "role",
+    "work_experience",
+    "married",
+    "home_type",
+    "has_social_profile",
+    "is_verified"
+  ]
+}
