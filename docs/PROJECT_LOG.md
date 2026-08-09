@@ -3,7 +3,7 @@
 A complete record of the work: what was found, what was built, what was decided,
 and what is still open.
 
-**Date:** 2026-08-09 · **Commits:** 8 · **Tests:** 243 · **Status:** v2 model is decision-capable, not approved
+**Date:** 2026-08-09 · **Commits:** 13 · **Tests:** 243 · **Status:** v2 model is decision-capable, not approved
 
 ---
 
@@ -279,7 +279,7 @@ Bureau data would do more than any further modelling on what is here.
 | `governance.py` | 276 | Field classification, enforced feature policy |
 | `scorecard.py` | 237 | Score points, reason codes, cutoff policy |
 | `woe.py` | 189 | Weight of evidence, information value, challenger |
-| `config.py` | 167 | Configuration with validation |
+| `config.py` | 200 | Configuration, validation, dataset resolution |
 | `evaluation.py` | 160 | KS, Gini, PR-AUC, PSI, calibration, deciles |
 | `calibration.py` | 116 | Isotonic / Platt calibration |
 | `validation.py` | 106 | Walk-forward folds, customer dedup |
@@ -325,7 +325,7 @@ three times. It was flattened to a conventional layout:
 data/            the dataset, tracked exactly once
 ml_pipeline/     importable pipeline stages
 analysis/        independent validation experiments
-tests/           237 regression tests
+tests/           243 regression tests
 notebooks/       exploratory notebook and its analysis library
 docs/            review, model card, data register, project log
 archive/original/  the sources as delivered, kept as review evidence
@@ -337,6 +337,34 @@ to 41.5 MB** — the removals were two duplicate dataset copies (45.6 MB), a
 regenerable intermediate (31.3 MB), orphaned model binaries (12.6 MB), a
 duplicated notebook and library, caches, and two scored output files totalling
 21.5 MB that were keyed by `User_id` and should never have been sitting on disk.
+
+### The dataset is not distributed
+
+The full 22.8 MB file arrived bundled with a paid course carrying no licence
+statement, and was 79% of the repository. It was removed from **every commit**
+with `git filter-repo`, taking history from 16.4 MB to **2.2 MB**.
+
+An 11,439-row stratified sample is committed in its place, built by
+`analysis/make_sample.py` and stratified on **yearmo × label × placeholder
+spelling** so the properties the tests assert on survive:
+
+| | Full | Sample |
+|---|---|---|
+| Default rate | 0.0937 | 0.0989 |
+| Placeholder `"0"` / `"0.0"` / real | .611 / .228 / .161 | .621 / .209 / .170 |
+| Univariate AUC `received_principal` | 0.2493 | 0.2434 |
+
+It still reproduces findings **H1**, **M7**, **M10** and **C1** — the data
+contract returns the same 2 errors and 7 warnings against it. Everything
+resolves the full file when present and the sample otherwise, so a clone works
+unchanged: **243 tests pass with the full file, 241 pass and 2 skip without.**
+
+The 2 skips are deliberate. Finding **H2** needs more than 128k rows to cross a
+pandas chunk boundary; passing those tests on 11k rows would mean the check had
+silently stopped working.
+
+**Results from the sample are not the project's results.** A run against it
+scores roughly Gini 0.20, against the 0.2914 in `MODEL_CARD.md`.
 
 ---
 
@@ -394,10 +422,10 @@ L7 (`total_payement` misspelling) and L9 (model card) — L9 closed, L7 open by 
 | `test_scorecard.py` | 35 | Points scaling, reason codes, cutoff policy |
 | `test_monitoring.py` | 32 | Baseline, drift injection, maturity handling |
 | `test_validation_calibration_woe.py` | 32 | Walk-forward folds, calibration, WOE/IV |
-| `test_config_and_errors.py` | 25 | Config precedence, validation, error propagation |
+| `test_config_and_errors.py` | 31 | Config precedence, YAML/BOM handling, error propagation |
 | `test_analysis_utils.py` | 17 | The notebook library's 11 fixed defects |
 | `test_pipeline.py` | 17 | Labelling, splitting, encoding, leakage guards |
-| **Total** | **237** | |
+| **Total** | **243** | |
 
 Most monitoring and contract tests **inject a specific failure** and assert the
 right check fires while the others stay quiet. A test suite that only proves
@@ -407,17 +435,27 @@ things work on clean data proves very little.
 
 ## 8. Commits
 
-| Hash | Change | Files | Insertions |
-|---|---|---|---|
-| `076f5d5` | Initial commit: model with validation review and fixes | 56 | 158,537 |
-| `6c42f89` | Remediation status and config/CLI interface | 2 | 69 |
-| `b99d108` | Governed v2 model — Gini 0.2914 | 23 | 2,574 |
-| `8c309c0` | Decisioning layer — points, reason codes, cutoffs, serving | 8 | 910 |
-| `1934f9f` | Data contract and CI | 36 | 2,826 |
-| `959b6d8` | Production monitoring | 9 | 1,670 |
+Commit hashes are deliberately omitted. History was rewritten once — to strip
+the full dataset from every commit — which changed every SHA, and a document
+that quotes hashes rots the moment that happens again.
 
-93 files tracked. The initial commit's line count is dominated by the 23 MB
-dataset; roughly **8,000 lines of code and documentation** were written after it.
+| # | Change | Branch |
+|---|---|---|
+| 1 | Initial commit: model with validation review and fixes | `part-1-audit-and-fixes` |
+| 2 | Remediation status and config/CLI interface | `part-1-audit-and-fixes` |
+| 3 | Governed v2 model — Gini 0.2914 | `part-2-governed-model` |
+| 4 | Decisioning layer — points, reason codes, cutoffs, serving | `part-3-decisioning-layer` |
+| 5 | Data contract and CI | `part-4-data-contract-and-ci` |
+| 6 | Production monitoring | `part-5-monitoring` |
+| 7 | Complete engagement record | `part-6-documentation` |
+| 8–10 | Flatten layout, line-ending policy, proper `.gitignore` | `part-7-restructure` |
+| 11–13 | Ship a stratified sample; resolve the dataset path | `part-8-sample-dataset` |
+
+**95 files tracked, 13 commits, 8 topic branches** — each branch a checkpoint
+in a stack, since the work is sequential and cannot be reordered.
+
+The repository carries **2.2 MB of history and a 5.8 MB working tree**. Roughly
+**9,000 lines of code and documentation** were written across the engagement.
 
 ---
 
@@ -427,6 +465,9 @@ Recorded because a validation exercise that hides its own errors is not credible
 
 | Mistake | How it surfaced | Resolution |
 |---|---|---|
+| Five of six analysis scripts failed on a fresh clone | Fresh-clone audit | Dataset resolution moved into `config.py` so every caller shares it |
+| Every commit hash quoted in this document went stale | Post-rewrite claim audit | Hashes removed; the table is ordered, not addressed |
+| Two stale test counts and a stale line count in this document | Post-rewrite claim audit | Corrected; the audit script now cross-checks them |
 | First `id_cols` notebook fix would have re-created the C2 leak downstream | Verification pass before committing | Replaced with an idempotent rebind |
 | Committed `scores_v2.csv` — 143,727 rows keyed by `User_id` | Reviewing the staged file list | Removed from history, glob widened |
 | Predicted the encoder was "the most likely source of lift" | The sweep disproved it | Reported the negative result |
