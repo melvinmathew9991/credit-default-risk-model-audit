@@ -14,6 +14,8 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from conftest import DATA_PATH  # noqa: E402
+
 from ml_pipeline.data_contract import (  # noqa: E402
     CREDIT_RISK_CONTRACT,
     ColumnSpec,
@@ -25,9 +27,8 @@ from ml_pipeline.data_contract import (  # noqa: E402
     validate_raw_data,
 )
 
-DATA = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "credit_risk_data.csv"
-)
+#: Full dataset if present, otherwise the committed sample. See tests/conftest.py.
+DATA = DATA_PATH
 
 
 def codes(issues):
@@ -254,7 +255,10 @@ def test_leakage_screen_requires_the_label():
 # ===========================================================================
 # Integration: does the contract rediscover the review's findings?
 # ===========================================================================
-needs_data = pytest.mark.skipif(not os.path.exists(DATA), reason="dataset not present")
+needs_data = pytest.mark.skipif(
+    DATA is None or not os.path.exists(DATA),
+    reason="no dataset present; see docs/DATA.md",
+)
 
 
 @pytest.fixture(scope="module")
@@ -301,8 +305,15 @@ def test_leakage_screen_catches_received_principal(raw):
 
 
 @needs_data
+@pytest.mark.requires_full_dataset
 def test_type_stability_fires_on_the_default_chunked_read():
-    """Finding H2 - the check only means something if it catches the bad read."""
+    """Finding H2 - the check only means something if it catches the bad read.
+
+    Needs the full file: pandas only uses more than one chunk above ~131k rows,
+    and the defect is that identical text gets different types in different
+    chunks. Passing this on the 11k-row sample would mean the check had quietly
+    stopped working, so it skips rather than gives false assurance.
+    """
     bad = pd.read_csv(DATA)  # default low_memory=True
     issues = ColumnSpec("work_experience", type_stable=True).validate(bad)
     assert ("work_experience", "type_stable") in codes(issues), (

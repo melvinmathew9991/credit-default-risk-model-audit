@@ -81,10 +81,19 @@ runs/
 
 # -----------------------------------------------------------------------------
 # Data
-# data/credit_risk_data.csv is tracked on purpose - it is the one canonical
-# copy. Bulk formats that should never be committed are listed here so a large
-# intermediate cannot slip in unnoticed.
+#
+# The full 22.8 MB dataset is NOT distributed here - it was 79% of the
+# repository and its licence is unknown. A stratified sample is committed
+# instead: data/credit_risk_data_sample.csv, ~1.8 MB, built by
+# analysis/make_sample.py and checked for fidelity against the full file.
+#
+# Tests and CI run against whichever is present. See docs/DATA.md.
 # -----------------------------------------------------------------------------
+data/credit_risk_data.csv
+!data/credit_risk_data_sample.csv
+
+# Bulk formats that should never be committed, so a large intermediate cannot
+# slip in unnoticed.
 *.parquet
 *.feather
 *.arrow

@@ -22,17 +22,22 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from conftest import DATA_PATH  # noqa: E402
+
 from ml_pipeline import evaluation as ev  # noqa: E402
 from ml_pipeline import processing, training, utils  # noqa: E402
 
-DATA = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "credit_risk_data.csv"
-)
+#: Full dataset if present, otherwise the committed sample. See tests/conftest.py.
+DATA = DATA_PATH
+
+needs_data = pytest.mark.skipif(DATA is None, reason="no dataset present; see docs/DATA.md")
 
 
 # --------------------------------------------------------------------- fixtures
 @pytest.fixture(scope="module")
 def raw():
+    if DATA is None:
+        pytest.skip("no dataset present; see docs/DATA.md")
     return utils.process_data(DATA, ["gender"])
 
 
@@ -51,6 +56,7 @@ def test_gender_is_dropped(raw):
     assert "gender" not in raw.columns
 
 
+@pytest.mark.requires_full_dataset
 def test_read_is_type_stable(raw):
     """Every value in a categorical column must parse to one python type.
 

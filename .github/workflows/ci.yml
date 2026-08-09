@@ -40,13 +40,18 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
 
-      - name: Verify the dataset checksum
+      - name: Verify the sample checksum
+        # The full dataset is not distributed; the committed sample is what CI
+        # runs against. Its fidelity to the full file is checked by
+        # analysis/make_sample.py, so pinning its bytes pins the test inputs.
         run: |
-          echo "2f816622a796f383cd48667607438ebbbfea4b07c919073e03497f3245b00688  data/credit_risk_data.csv" \
+          echo "a4d1128f162a1456a49ccc9d1a94acfe44d839efe90ab602f61c49a80998420a  data/credit_risk_data_sample.csv" \
             | sha256sum --check
 
       - name: Run tests
-        run: python -m pytest tests -q
+        # Two tests need the full file to cross a pandas chunk boundary and
+        # skip here. `-ra` makes the skips visible rather than silent.
+        run: python -m pytest tests -q -ra
 
   smoke-train:
     # A green test suite does not prove the pipeline still runs end to end.
@@ -69,29 +74,50 @@ jobs:
         # The shipped dataset knowingly breaches the contract (finding H1), so
         # this reports rather than gates. Flip to strict once the source export
         # is fixed and this becomes a real intake gate.
-        run: python validate_data.py --no-strict
+        run: python validate_data.py --input data/credit_risk_data_sample.csv --no-strict
 
       - name: Smoke train - original pipeline
-        run: python engine.py --max-evals 2 --output-dir output_ci
+        run: python engine.py --data-path data/credit_risk_data_sample.csv --max-evals 2 --output-dir output_ci
 
       - name: Smoke train - governed v2 pipeline
-        run: python engine_v2.py --max-evals 2 --output-dir output_v2_ci
+        run: python engine_v2.py --data-path data/credit_risk_data_sample.csv --max-evals 2 --output-dir output_v2_ci
 
       - name: Score with v2
         run: |
           python predict_v2.py \
-            --input data/credit_risk_data.csv \
+            --input data/credit_risk_data_sample.csv \
             --artifacts output_v2_ci \
             --output /tmp/scores_ci.csv \
             --cutoff-score 555
 
       - name: Monitoring - build baseline and check a period
-        # Exercises the monitoring path end to end. `check` exits 1 on an ALERT,
-        # so a genuine drift in the committed dataset would fail the build.
+        # Exercises the monitoring path end to end.
+        #
+        # `check` exit codes: 0 = all clear, 1 = at least one ALERT, 2 = the job
+        # could not run. Here we accept 0 or 1 and fail only on 2, because an
+        # ALERT is the *expected* result on this input: the thresholds are
+        # calibrated for the full dataset and a properly tuned model, whereas
+        # CI trains 2 hyperopt trials on an 11k-row sample. Treating an alert
+        # as a build failure would mean either loosening real thresholds or
+        # deleting the step - both worse than saying so plainly.
+        #
+        # What this proves is the plumbing: baseline builds, check runs,
+        # reports are written, the immature-cohort path works.
         run: |
-          python monitor.py baseline --artifacts output_v2_ci --up-to 202204
-          python monitor.py check --artifacts output_v2_ci --period 202205
-          python monitor.py check --artifacts output_v2_ci --period 202205 --no-labels
+          set +e
+          python monitor.py baseline --input data/credit_risk_data_sample.csv --artifacts output_v2_ci --up-to 202204
+          rc=$?; [ $rc -ge 2 ] && { echo "::error::monitor baseline failed to run (exit $rc)"; exit 1; }
+
+          python monitor.py check --input data/credit_risk_data_sample.csv --artifacts output_v2_ci --period 202205
+          rc=$?; [ $rc -ge 2 ] && { echo "::error::monitor check failed to run (exit $rc)"; exit 1; }
+          [ $rc -eq 1 ] && echo "::notice::monitor reported an ALERT on the sample, which is expected"
+
+          python monitor.py check --input data/credit_risk_data_sample.csv --artifacts output_v2_ci --period 202205 --no-labels
+          rc=$?; [ $rc -ge 2 ] && { echo "::error::monitor --no-labels failed to run (exit $rc)"; exit 1; }
+
+          test -f output_v2_ci/monitoring_202205.json || { echo "::error::no monitoring report written"; exit 1; }
+          echo "monitoring path exercised end to end"
+          exit 0
 
       - name: Confirm no personal data is about to be committed
         run: |
@@ -103,9 +129,9 @@ jobs:
 
       - name: Confirm the dataset has exactly one copy
         run: |
-          n=$(git ls-files | grep -c 'credit_risk_data\.csv$' || true)
+          n=$(git ls-files | grep -c 'credit_risk_data_sample\.csv$' || true)
           if [ "$n" -ne 1 ]; then
-            echo "::error::expected exactly one tracked copy of the dataset, found $n"
+            echo "::error::expected exactly one tracked copy of the sample, found $n"
             exit 1
           fi
-          echo "one tracked dataset copy"
+          echo "one tracked sample copy"

@@ -27,6 +27,22 @@ with LightGBM, tunes it with Hyperopt, and explains it with SHAP.
 | Hold-out Gini | 0.9272 (inflated by leakage) | **0.2914** |
 | Artefacts | `output/` | `output_v2/` |
 
+## The data
+
+**This repository ships a sample, not the full dataset.** The full 22.8 MB file
+came bundled with a paid course carrying no licence statement, so it is not
+redistributed. A stratified 11,439-row sample is committed in its place.
+
+Everything works against either: tests, CI and all entry points use
+`data/credit_risk_data.csv` when it is present and fall back to
+`data/credit_risk_data_sample.csv` when it is not. If you have the full file,
+drop it at that path — nothing needs configuring.
+
+The sample preserves the properties the findings rest on and reproduces the same
+data-contract errors. It does **not** reproduce the headline numbers: a run
+against it scores roughly Gini 0.20, against the 0.2914 in `docs/MODEL_CARD.md`.
+See `docs/DATA.md` for the fidelity comparison and what cannot survive sampling.
+
 ## Setup
 
 Python **3.10** (3.10.11 verified).
@@ -46,7 +62,7 @@ moved to the nearest release that does (`pandas` 1.3.0 → 1.3.5, `shap` 0.40.0 
 ## Layout
 
 ```
-data/credit_risk_data.csv     the dataset, tracked exactly once (see docs/DATA.md)
+data/credit_risk_data_sample.csv   11,439-row sample (see docs/DATA.md)
 ml_pipeline/                  importable pipeline stages
   config.py                   configuration with validation
   governance.py               field classification and enforced feature policy
